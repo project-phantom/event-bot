@@ -358,17 +358,20 @@ def admin_panel(bot, update):
     # GET EVENTS AND VENUES REQUESTS CALL FROM FUNCTIONS 
     list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs = getPendingEventsVenues()
 
-    ADMIN_MENU_MESSAGE = ''
+    ADMIN_MENU_MESSAGE = "\n\n<b>List of Event Publications to be Approved:</b>"
     for i in range(len(list_pending_events)):
-        ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_events[i])
-        ADMIN_MENU_MESSAGE += "/approveEvent" + list_eventIDs[i] + " | " +  "/rejectEvent" + list_eventIDs[i] 
+        ADMIN_MENU_MESSAGE += "<b>EVENT ID: " + str(list_eventIDs[i]) + "</b>"
+        ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_events[i]) 
+        ADMIN_MENU_MESSAGE += "\n\n" +"/approveEvent" + list_eventIDs[i] + " | " +  "/rejectEvent" + list_eventIDs[i] 
 
+    ADMIN_MENU_MESSAGE += "\n\n<b>List of Venue Bookings to be Approved:</b>"
     for i in range(len(list_pending_venues)):
+        ADMIN_MENU_MESSAGE += "<b>VENUE ID: " + str(list_venueIDs[i]) + "</b>"
         ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_venues[i])
-        ADMIN_MENU_MESSAGE += "/approveVenue" + list_venueIDs[i] + " | " +  "/rejectVenue" + list_venueIDs[i] 
+        ADMIN_MENU_MESSAGE += "\n\n" + "/approveVenue" + list_venueIDs[i] + " | " +  "/rejectVenue" + list_venueIDs[i] 
     
     replytext = "<b>Here are a list of pending events publication and venue booking requests for you to approve:</b>"
-    replytext += "\n\n" + ADMIN_MENU_MESSAGE
+    replytext += ADMIN_MENU_MESSAGE
     
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
@@ -407,8 +410,7 @@ def admin_process_event(bot, update):
     
     #appends message sent by bot itself - the very first message: start message
     INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
-    
-    return RETURN_ADMIN_PANEL
+    return 
 
 
 def admin_process_venue(bot, update):
@@ -439,8 +441,7 @@ def admin_process_venue(bot, update):
     
     #appends message sent by bot itself - the very first message: start message
     INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
-
-    return RETURN_ADMIN_PANEL
+    return
 
 
 def log_out(bot, update):
@@ -503,8 +504,6 @@ def main():
 
                 AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
 
-                RETURN_ADMIN_PANEL: [CallbackQueryHandler(callback = admin_panel, pattern = '^(return_admin_panel)$')],
-
             },
 
             fallbacks = [CommandHandler('cancel', cancel)],
@@ -524,6 +523,8 @@ def main():
         rejectcommandtext = 'rejectVenue' + str(list_venueIDs[i])
         dispatcher.add_handler(CommandHandler(command = approvecommandtext, callback = admin_process_venue))
         dispatcher.add_handler(CommandHandler(command = rejectcommandtext, callback = admin_process_venue))
+
+    dispatcher.add_handler(CallbackQueryHandler(callback = admin_panel, pattern = '^(return_admin_panel)$'))
 
     updater.start_polling()
     updater.idle()
