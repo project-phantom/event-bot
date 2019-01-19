@@ -40,7 +40,7 @@ def build_menu(buttons, n_cols, header_buttons, footer_buttons):
 eheart = emojize(":heart: ", use_aliases=True)
 
 # initialize states
-(AFTER_START, LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD) = range(6)
+(AFTER_START, LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_ADMIN_PANEL) = range(6)
 
 def start(bot, update):
     button_list = [InlineKeyboardButton(text='Register', callback_data = 'register'),
@@ -176,6 +176,7 @@ def showtoken(bot, update):
     replytext += "\n\nYour unique User Token: "
     USERTOKEN = "123"
     replytext += USERTOKEN
+    INFO_STORE[user.id]['user_token'] = USERTOKEN
 
     # deletes message sent previously by bot
     bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
@@ -192,30 +193,159 @@ def showtoken(bot, update):
 
 
 def dashboard(bot, update):
-    query = update.callback_query
-    user = query.from_user
-    chatid = query.message.chat.id
-    messageid = query.message.message_id
-    userinput = html.escape(query.data)
-    logger.info(userinput)
-
     button_list = [InlineKeyboardButton(text='Mark Attendance', callback_data = 'attendance'),
                     InlineKeyboardButton(text='Browse Events', callback_data = 'browse_events'),
                     InlineKeyboardButton(text='Manage Events', callback_data = 'manage_events'),
                     InlineKeyboardButton(text='Admin Panel', callback_data = 'admin_panel'),
                     InlineKeyboardButton(text='Log Out', callback_data = 'log_out')]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+    replytext = "<b>DASHBOARD:</b>"
 
+    try:
+        user = update.message.from_user
+        chatid = update.message.chat.id
+        userinput = html.escape(update.message.text.strip())
+        logger.info(userinput)
+
+        USERTOKEN = userinput
+        INFO_STORE[user.id]['user_token'] = USERTOKEN
+
+        # deletes message sent previously by bot
+        bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+        msgsent = bot.send_message(text = replytext,
+                                    chat_id = chatid,
+                                    reply_markup = InlineKeyboardMarkup(menu),
+                                    parse_mode=ParseMode.HTML)
+    
+        #appends message sent by bot itself - the very first message: start message
+        INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+
+    except AttributeError:
+        query = update.callback_query
+        user = query.from_user
+        chatid = query.message.chat.id
+        messageid = query.message.message_id
+        userinput = html.escape(query.data)
+        logger.info(userinput)
+        
+        bot.editMessageText(text = replytext,
+                            chat_id = chatid,
+                            message_id = messageid,
+                            reply_markup = InlineKeyboardMarkup(menu),
+                            parse_mode=ParseMode.HTML)
+
+    return AFTER_DASHBOARD
+
+def mark_attendance(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+
+    button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
-    replytext = "DASHBOARD:"
+    replytext = "Please send me the event QR code as a photograph."
+    replytext += "\n\n<b>What should I do</b>?"
+    replytext += "\n\n1. Quit Telegram temporarily"
+    replytext += "\n\n2. Take a photo of the QR code with your phone camera and save the photo in your phone"
+    replytext += "\n\n3. Return to this chat and send me the QR code photo you have taken. Do NOT send as a file!"
         
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
                         message_id = messageid,
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
+    return AFTER_MARK_ATTENDANCE
 
-    return AFTER_DASHBOARD
+
+def browse_events(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+
+    button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+    
+    EVENTLIST = "INSERT EVENT HERE"
+
+    replytext = "<b>Sup! List of cool events going on recently</b>:"
+    replytext += "\n\n" + EVENTLIST
+        
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
+    return AFTER_BROWSE_EVENTS
+
+
+def manage_events(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+
+    button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+    
+    EVENTMANAGEMENTLIST = "LIST OF EVENTS MANAGED HERE"
+
+    replytext = "<b>Here are the list of events you have started:</b>"
+    replytext += "\n\n" + EVENTMANAGEMENTLIST
+        
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
+    return AFTER_MANAGE_EVENTS
+
+
+def admin_panel(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+
+    button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+
+    ADMIN_MENU_MESSAGE = "LIST OF EVENTS TO BE APPROVED / REJECTED HERE; WITH URL LINKS."
+
+    replytext = "<b>Here are a list of pending events for you to approve:</b>"
+    replytext += "\n\n" + ADMIN_MENU_MESSAGE
+    
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
+    return AFTER_ADMIN_PANEL
+
+
+def log_out(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+    
+    replytext = "Thank you for using the system. Press /start again if you wish to relogin anytime.\n\nGoodbye!"
+        
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        parse_mode=ParseMode.HTML)
+    return ConversationHandler.END
+
+
 
 
 def error(bot, update, error):
@@ -235,7 +365,7 @@ def main():
                 AFTER_START: [CallbackQueryHandler(callback = login, pattern = '^(login)$'),
                             CallbackQueryHandler(callback = register, pattern = '^(register)$')],
 
-                LOGIN: [CallbackQueryHandler(callback = dashboard, pattern = '^(dashboard)$'),
+                LOGIN: [MessageHandler(Filters.text, dashboard),
                         CallbackQueryHandler(callback = start, pattern = '^(back)$')],
 
                 FIRST_NAME: [MessageHandler(Filters.text, lastname),
@@ -247,11 +377,22 @@ def main():
                 NEWLOGIN: [CallbackQueryHandler(callback = dashboard, pattern = '^(dashboard)$'),
                             CallbackQueryHandler(callback = showtoken, pattern = '^(back)$')], 
 
-                AFTER_DASHBOARD: [CallbackQueryHandler(callback = dashboard, pattern = '^(attendance)$'),
-                                CallbackQueryHandler(callback = dashboard, pattern = '^(browse_events)$'),
-                                CallbackQueryHandler(callback = dashboard, pattern = '^(manage_events)$'),
-                                CallbackQueryHandler(callback = dashboard, pattern = '^(admin_panel)$'),
-                                CallbackQueryHandler(callback = dashboard, pattern = '^(log_out)$')]},
+                AFTER_DASHBOARD: [CallbackQueryHandler(callback = mark_attendance, pattern = '^(attendance)$'),
+                                CallbackQueryHandler(callback = browse_events, pattern = '^(browse_events)$'),
+                                CallbackQueryHandler(callback = manage_events, pattern = '^(manage_events)$'),
+                                CallbackQueryHandler(callback = admin_panel, pattern = '^(admin_panel)$'),
+                                CallbackQueryHandler(callback = log_out, pattern = '^(log_out)$')]
+                
+                AFTER_MARK_ATTENDANCE: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
+
+                AFTER_BROWSE_EVENTS: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
+
+                AFTER_MANAGE_EVENTS: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
+
+                AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')]
+    
+            },
+
             fallbacks = [CommandHandler('cancel', cancel)],
             allow_reentry = True
         )
