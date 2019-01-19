@@ -137,7 +137,7 @@ def login_verify(bot, update):
 
     USERTOKEN = userinput
     
-    if User.login(USERTOKEN): #TEST IF USERTOKEN IS IN DATABASE HERE
+    if isinstance(User.login(USERTOKEN), str): #TEST IF USERTOKEN IS IN DATABASE HERE
         INFO_STORE[user.id]['user_token'] = USERTOKEN # only record usertoken if success login match
         button_list = [InlineKeyboardButton(text='Go to Dashboard', callback_data = 'login_success')]
         replytext = "<b>Great! You have successfully logged in.</b>"
