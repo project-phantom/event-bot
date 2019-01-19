@@ -10,6 +10,12 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackQueryHandler
 from emoji import emojize
 import html
+from dbhelper import DB
+
+try:
+    from config import TOKEN
+except:
+    pass
 
 #import 'src\model\user.py'
 
@@ -17,7 +23,7 @@ import html
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
     datefmt="%Y-%m-%d %H:%M:%S",
-    level = logging.INFO)
+    level = logging.ERROR)
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +32,7 @@ INFO_STORE = {}
 
 #Set up telegram token 
 TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
+# TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
 
 # Building menu for every occasion 
 def build_menu(buttons, n_cols, header_buttons, footer_buttons):
