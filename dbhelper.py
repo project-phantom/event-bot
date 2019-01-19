@@ -78,6 +78,36 @@ class DB:
 		self.conn.commit()
 		return cursor.fetchall()
 
+	def register_for_event(self, event_id, user_id, action):
+		if action == 'register'
+			stmt = 'insert into user_booking (event_id, user_id) values (?, ?)'
+			args = (event_id, user_id)
+			self.conn.execute(stmt, args)
+			self.conn.commit()
+
+	def manage_events(self, user_id, event_id):
+		## manage created events by this user_id
+		stmt = 'select event_id, event_name from events a join user_booking b on a.event_id = b.event_id where user_id = (?)'
+		args = (user_id,)
+		cursor = self.conn.execute(stmt, args)
+		self.conn.commit()
+		return cursor.fetchall()
+
+	def admin_manage_events(self, user_id, event_id, action):
+		args = None
+		if action == 'approve':
+			visible_status = '1'
+		elif action == 'reject':
+			visible_status = '0'
+
+		stmt = 'update events set visible_status = (?)'
+		args = (visible_status,)
+		self.conn.execute(stmt, args)
+		self.conn.commit()
+
+	def mark_attendance(self, qr_image):
+		pass
+
 
 
 

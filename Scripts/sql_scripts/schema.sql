@@ -21,13 +21,16 @@ CREATE TABLE if not exists events(
   -- organizer_id integer
 );
 
-CREATE TABLE if not exists bookings(
+CREATE TABLE if not exists user_booking(
+  id integer primary key AUTOINCREMENT,
   event_id integer not null,
-  venue_name varchar(100),
-  date_time datetime,
-  venue_status integer,
-  time_slot_status integer,
-  book_status integer 
+  user_id integer not null,
+
+  -- venue_name varchar(100),
+  -- date_time datetime,
+  -- venue_status integer,
+  -- time_slot_status integer,
+  -- book_status integer 
 );
 
 

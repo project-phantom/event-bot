@@ -12,10 +12,10 @@ from emoji import emojize
 import html
 from dbhelper import DB
 
-#try:
-#    from config import TOKEN
-#except:
-#    pass
+try:
+   from config import TOKEN
+except:
+   pass
 
 #import 'src\model\user.py'
 
@@ -31,9 +31,9 @@ logger = logging.getLogger(__name__)
 INFO_STORE = {}
 
 #Set up telegram token 
-TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
+# TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
 #if TOKEN:
-#    TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
+TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
 #else:
 #    TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
 
