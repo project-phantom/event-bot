@@ -42,7 +42,6 @@ eheart = emojize(":heart: ", use_aliases=True)
 # initialize states
 (AFTER_START, LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD) = range(6)
 
-
 def start(bot, update):
     button_list = [InlineKeyboardButton(text='Register', callback_data = 'register'),
                     InlineKeyboardButton(text='Login', callback_data = 'login')]
@@ -217,8 +216,7 @@ def main():
     dispatcher=updater.dispatcher
     job_queue = updater.job_queue  
     dispatcher.add_error_handler(error)
-    dispatcher.add_handler(CommandHandler('start', start))
-    
+
     conv_handler = ConversationHandler(
         entry_points = [CommandHandler('start', start)],
 
@@ -243,7 +241,7 @@ def main():
                             CallbackQueryHandler(callback = dashboard, pattern = 'manage_events'),
                             CallbackQueryHandler(callback = dashboard, pattern = 'admin_panel'),
                             CallbackQueryHandler(callback = dashboard, pattern = 'log_out')]
-        }
+        },
         fallbacks = [CommandHandler('cancel', cancel)],
         allow_reentry = True
     )
