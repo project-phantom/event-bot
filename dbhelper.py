@@ -58,26 +58,25 @@ class DB:
 		print("Wrong token!")
 		return 
 
+	def create_event(self, event_name, venue_id, venue_name,date_time,  description, visible_status,total_attendee):
+		## 10 for pending; 1 for approve; 0 for reject;
+		scripts = "insert into events (event_name, event_id, venue_name, date_time,  description, visible_status,total_attendee ) values (?,?,?,?,?,10,0)"
+		args = (event_name, venue_id,  venue_name, datetime.now().strftime('%Y %b-%d %H:%m:%S'), description)
+		self.conn.execute(scripts, args)
+		self.conn.commit()
+		return args[0]
 
-
-	def create_event(self, title, date, time, ):
-		pass
-
-		#   self.organizerID = organizerID
-        # self.name = name
-        # self.description = description
-        # self.visibility = visibility
-        # self.booking = booking
-        # self.attendee = attendee
-
-	def generate_all_approved_events(self):
-		# stmt = 'select title, date, time, venue, description,  from events values'
-		stmt = 'select * from events'
+	def generate_all_pending_events(self):
+		stmt = 'select event_id, event_name from events where visible_status = 10'
 		cursor = self.conn.execute(stmt)
 		self.conn.commit()
 		return cursor.fetchall()
 
-	# def update_venue(self, venue_id, )
+	def generate_all_approved_events(self):
+		stmt = 'select event_id, event_name from events where visible_status = 1'
+		cursor = self.conn.execute(stmt)
+		self.conn.commit()
+		return cursor.fetchall()
 
 
 
