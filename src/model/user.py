@@ -15,5 +15,9 @@ class User:
 
     @staticmethod
     def login(token):
-        DB().user_login(token)
+        if (DB().user_login(token) != token):
+            return False
+
         User.currentUser = User("test", token)
+        return True
+
