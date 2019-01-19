@@ -1,5 +1,7 @@
 import sqlite3
 from uuid import uuid4
+import random
+
 
 class DB:
 
@@ -53,15 +55,17 @@ class DB:
 		scripts = "select * from users where token = (?)"
 		token = self.execute_scripts(scripts, token)
 		if token is not None:
-			return token 
+			return True 
 		## 
 		print("Wrong token!")
-		return 
+		return False
 
-	def create_event(self, event_name, venue_id, venue_name,date_time,  description, visible_status,total_attendee):
+	def create_event(self, event_name, venue_name,date_time, description, visible_status,total_attendee):
 		## 10 for pending; 1 for approve; 0 for reject;
-		scripts = "insert into events (event_name, event_id, venue_name, date_time,  description, visible_status,total_attendee ) values (?,?,?,?,?,10,0)"
-		args = (event_name, venue_id,  venue_name, datetime.now().strftime('%Y %b-%d %H:%m:%S'), description)
+		event_id = random.randint(1000, 9999)
+		venue_id = random.randint(1000, 9999)
+		scripts = "insert into events (event_id, event_name, venue_name, date_time,  description, visible_status,total_attendee ) values (?, ?,?,?,?,?,10,0)"
+		args = (event_id, event_name, venue_id,  venue_name, datetime.now().strftime('%Y %b-%d %H:%m:%S'), description)
 		self.conn.execute(scripts, args)
 		self.conn.commit()
 		return args[0]
