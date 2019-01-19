@@ -14,10 +14,12 @@ from dbhelper import DB
 
 from src.model.user import User
 
-#try:
-#    from config import TOKEN
-#except:
-#    pass
+#Set up telegram token 
+if 'HACKNROLLTOKEN' in os.environ:
+    TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
+else:
+   from config import TOKEN
+   TELEGRAM_TOKEN = TOKEN
 
 #import 'src\model\user.py'
 
@@ -32,12 +34,6 @@ logger = logging.getLogger(__name__)
 #temporary store of info 
 INFO_STORE = {}
 
-#Set up telegram token 
-TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
-#if TOKEN:
-# TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
-#else:
-#    TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
 
 # Building menu for every occasion 
 def build_menu(buttons, n_cols, header_buttons, footer_buttons):
@@ -53,7 +49,7 @@ eheart = emojize(":heart: ", use_aliases=True)
 einfo = emojize(":information_source: ", use_aliases=True)
 
 # initialize states
-(AFTER_START, LOGIN, VERIFY_LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_ADMIN_PANEL, RETURN_ADMIN_PANEL) = range(12)
+(AFTER_START, LOGIN, VERIFY_LOGIN, FIRST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_ADMIN_PANEL, RETURN_ADMIN_PANEL) = range(11)
 
 def start(bot, update):
     button_list = [InlineKeyboardButton(text='Register', callback_data = 'register'),
@@ -143,7 +139,7 @@ def login_verify(bot, update):
         replytext = "<b>Great! You have successfully logged in.</b>"
 
     else: 
-        button_list = [InlineKeyboardButton(text='FILL UP AGAIN', callback_data = 'login_failure')]
+        button_list = [InlineKeyboardButton(text='FILL UP AGAIN', callback_data = 'login_fail')]
         replytext = "<b>ERROR. Your User Token is not found. Please try again or register first.</b>"
 
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
@@ -168,7 +164,6 @@ def register(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
-    print(userinput)
     button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
@@ -179,33 +174,34 @@ def register(bot, update):
                         message_id = messageid,
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
+    
     return FIRST_NAME
 
-def lastname(bot, update):
-    user = update.message.from_user
-    chatid = update.message.chat.id
-    userinput = html.escape(update.message.text.strip())
-    logger.info(userinput)
+# def lastname(bot, update):
+#     user = update.message.from_user
+#     chatid = update.message.chat.id
+#     userinput = html.escape(update.message.text.strip())
+#     logger.info(userinput)
 
-    INFO_STORE[user.id]['first_name'] = userinput
+#     INFO_STORE[user.id]['first_name'] = userinput
 
-    button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
-    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+#     button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
+#     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
-    replytext = "How about your <b>Last Name</b>?"
+#     replytext = "How about your <b>Last Name</b>?"
     
-    # deletes message sent previously by bot
-    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+#     # deletes message sent previously by bot
+#     bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
 
-    msgsent = bot.send_message(text = replytext,
-                                chat_id = chatid,
-                                reply_markup = InlineKeyboardMarkup(menu),
-                                parse_mode=ParseMode.HTML)
+#     msgsent = bot.send_message(text = replytext,
+#                                 chat_id = chatid,
+#                                 reply_markup = InlineKeyboardMarkup(menu),
+#                                 parse_mode=ParseMode.HTML)
     
-    #appends message sent by bot itself - the very first message: start message
-    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+#     #appends message sent by bot itself - the very first message: start message
+#     INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
     
-    return LAST_NAME
+#     return LAST_NAME
 
 
 # for new users: show token for future logins 
@@ -215,7 +211,11 @@ def showtoken(bot, update):
     userinput = html.escape(update.message.text.strip())
     logger.info(userinput)
     print(userinput)
-    INFO_STORE[user.id]['last_name'] = userinput
+    INFO_STORE[user.id]['first_name'] = userinput
+
+    # if User.register(userinput):
+    #     ## go back to register again
+    # else:
 
     button_list = [InlineKeyboardButton(text='Login Now', callback_data = 'dashboard'),
                     InlineKeyboardButton(text='Back', callback_data = 'back')]
@@ -223,11 +223,12 @@ def showtoken(bot, update):
     
     replytext = "Okay! Your information is registered. The following is your user token, please keep it safely! Write it down somewhere :)"
     replytext += "\n\nYour unique User Token: "
-    USERTOKEN = User.register(INFO_STORE[user.id]["first_name"] + " " + INFO_STORE[user.id]["last_name"])
+    USERTOKEN = User.register(INFO_STORE[user.id]["first_name"])
     replytext += USERTOKEN
     INFO_STORE[user.id]['user_token'] = USERTOKEN
 
     # deletes message sent previously by bot
+    print(INFO_STORE[user.id])
     bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
 
     msgsent = bot.send_message(text = replytext,
@@ -554,7 +555,6 @@ def log_out(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
-    print(userinput)
     replytext = "Thank you for using the system. Press /start again if you wish to relogin anytime.\n\nGoodbye!"
         
     bot.editMessageText(text = replytext,
@@ -587,11 +587,11 @@ def main():
                 VERIFY_LOGIN: [CallbackQueryHandler(callback = login, pattern = '^(login_fail)$'),
                                 CallbackQueryHandler(callback = dashboard, pattern = '^(login_success)$')],
 
-                FIRST_NAME: [MessageHandler(Filters.text, lastname),
-                            CallbackQueryHandler(callback = start, pattern = '^(back)$')],
-
-                LAST_NAME: [MessageHandler(Filters.text, showtoken),
+                FIRST_NAME: [MessageHandler(Filters.text, showtoken),
                             CallbackQueryHandler(callback = register, pattern = '^(back)$')],
+
+                # LAST_NAME: [MessageHandler(Filters.text, showtoken),
+                #             CallbackQueryHandler(callback = register, pattern = '^(back)$')],
 
                 NEWLOGIN: [CallbackQueryHandler(callback = dashboard, pattern = '^(dashboard)$'),
                             CallbackQueryHandler(callback = showtoken, pattern = '^(back)$')], 

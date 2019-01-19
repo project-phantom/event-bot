@@ -10,6 +10,7 @@ CREATE TABLE if not exists users (
 
 CREATE TABLE if not exists events(
   event_id integer primary key AUTOINCREMENT,
+  organizer_id integer,
   event_name varchar(255) not null,
   venue_id integer,
   venue_name varchar(100),

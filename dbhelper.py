@@ -60,15 +60,17 @@ class DB:
 		print("Wrong token!")
 		return False
 
-	def create_event(self, event_name, venue_name,date_time, description, visible_status,total_attendee):
+	def create_event(self, organizer_id, event_name, venue_name,date_time, description, visible_status,total_attendee):
 		## 10 for pending; 1 for approve; 0 for reject;
 		event_id = random.randint(1000, 9999)
 		venue_id = random.randint(1000, 9999)
-		scripts = "insert into events (event_id, event_name, venue_name, date_time,  description, visible_status,total_attendee ) values (?, ?,?,?,?,?,10,0)"
-		args = (event_id, event_name, venue_id,  venue_name, datetime.now().strftime('%Y %b-%d %H:%m:%S'), description)
+		scripts = "insert into events (event_id, event_name, venue_name, date_time,  description, visible_status,total_attendee ) values (?,?, ?,?,?,?,?,10,0)"
+		args = (event_id, organizer_id, event_name, venue_id,  venue_name, datetime.now().strftime('%Y %b-%d %H:%m:%S'), description)
 		self.conn.execute(scripts, args)
 		self.conn.commit()
-		return args[0]
+
+		## return event_id, user_id
+		return (args[0], args[1])
 
 	def generate_all_pending_events(self):
 		stmt = 'select event_id, event_name from events where visible_status = 10'
