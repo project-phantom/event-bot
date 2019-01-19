@@ -910,8 +910,7 @@ def admin_process_venue(bot, update):
     chatid = update.message.chat.id
     userinput = update.message.text.strip()[1:]
     logger.info(userinput)
-    print(userinput)
-
+  
     button_list = [InlineKeyboardButton(text='OK', callback_data = 'return_admin_panel')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     replytext = "Okay! Your previous decision has been recorded. Press 'OK' to return to the Admin Panel."
