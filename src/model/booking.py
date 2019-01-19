@@ -1,5 +1,5 @@
-from timeslot import TimeSlot as slot
-from venue import Venue
+from src.model.timeslot import TimeSlot as slot
+from src.model.venue import Venue
 import requests
 
 class Booking: 

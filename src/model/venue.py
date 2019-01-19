@@ -1,4 +1,4 @@
-from timeslot import TimeSlot
+from src.model.timeslot import TimeSlot
 
 class Venue:
 

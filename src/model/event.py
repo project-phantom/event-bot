@@ -1,6 +1,6 @@
-from booking import Booking
+from src.model.booking import Booking
 from dbhelper import DB
-from user import User
+from src.model.user import User
 
 class Event:
     def __init__(self, id, organizerID, name, description, visibility, booking, attendee):
