@@ -59,6 +59,6 @@ class DB:
 
 
 el = DB()
-el.setup()
+# el.setup()
 # el.add_user('crazyethan')
 # el.execute_scripts('SELECT * FROM users where name = (?)', 'zzz686970')

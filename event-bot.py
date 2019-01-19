@@ -31,8 +31,8 @@ logger = logging.getLogger(__name__)
 INFO_STORE = {}
 
 #Set up telegram token 
-TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
-# TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
+# TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
+TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
 
 # Building menu for every occasion 
 def build_menu(buttons, n_cols, header_buttons, footer_buttons):
@@ -110,7 +110,7 @@ def login(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
-
+    print(userinput)
     button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
@@ -130,7 +130,7 @@ def register(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
-
+    print(userinput)
     button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
@@ -176,7 +176,7 @@ def showtoken(bot, update):
     chatid = update.message.chat.id
     userinput = html.escape(update.message.text.strip())
     logger.info(userinput)
-
+    print(userinput)
     INFO_STORE[user.id]['last_name'] = userinput
 
     button_list = [InlineKeyboardButton(text='Login Now', callback_data = 'dashboard'),
@@ -222,6 +222,7 @@ def dashboard(bot, update):
         chatid = update.message.chat.id
         userinput = html.escape(update.message.text.strip())
         logger.info(userinput)
+        print(userinput)
 
         USERTOKEN = userinput
         INFO_STORE[user.id]['user_token'] = USERTOKEN
@@ -471,6 +472,7 @@ def admin_process_venue(bot, update):
     chatid = update.message.chat.id
     userinput = update.message.text.strip()[1:]
     logger.info(userinput)
+    print(userinput)
 
     button_list = [InlineKeyboardButton(text='OK', callback_data = 'return_admin_panel')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
@@ -503,7 +505,7 @@ def log_out(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
-    
+    print(userinput)
     replytext = "Thank you for using the system. Press /start again if you wish to relogin anytime.\n\nGoodbye!"
         
     bot.editMessageText(text = replytext,
