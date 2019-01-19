@@ -58,17 +58,25 @@ class DB:
 		print("Wrong token!")
 		return 
 
+
+
 	def create_event(self, title, date, time, ):
-		pass
+		
+		      #   self.organizerID = organizerID
+        # self.name = name
+        # self.description = description
+        # self.visibility = visibility
+        # self.booking = booking
+        # self.attendee = attendee
 
 	def generate_all_approved_events(self):
 		# stmt = 'select title, date, time, venue, description,  from events values'
 		stmt = 'select * from events'
 		cursor = self.conn.execute(stmt)
 		self.conn.commit()
-		return crusor.fetchall()
+		return cursor.fetchall()
 
-	def update_venue(self, venue_id, )
+	# def update_venue(self, venue_id, )
 
 
 
