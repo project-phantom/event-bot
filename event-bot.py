@@ -168,13 +168,14 @@ def register(bot, update):
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
     replytext = "What is your <b>First Name</b>?"
-        
+
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
                         message_id = messageid,
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
     
+    # appends message sent by bot itself - the very first message: start message
     return FIRST_NAME
 
 # def lastname(bot, update):
@@ -212,23 +213,24 @@ def showtoken(bot, update):
     logger.info(userinput)
     print(userinput)
     INFO_STORE[user.id]['first_name'] = userinput
-
-    # if User.register(userinput):
-    #     ## go back to register again
-    # else:
-
-    button_list = [InlineKeyboardButton(text='Login Now', callback_data = 'dashboard'),
-                    InlineKeyboardButton(text='Back', callback_data = 'back')]
-    menu = build_menu(button_list, n_cols = 2, header_buttons = None, footer_buttons = None)
-    
+ 
     replytext = "Okay! Your information is registered. The following is your user token, please keep it safely! Write it down somewhere :)"
     replytext += "\n\nYour unique User Token: "
     USERTOKEN = User.register(INFO_STORE[user.id]["first_name"])
-    replytext += USERTOKEN
     INFO_STORE[user.id]['user_token'] = USERTOKEN
+    if USERTOKEN:
+        replytext += USERTOKEN
+        button_list = [InlineKeyboardButton(text='Login Now', callback_data = 'dashboard'),
+                    InlineKeyboardButton(text='Back', callback_data = 'back')]
+
+    else: 
+        button_list = [InlineKeyboardButton(text='Register AGAIN', callback_data = 'register')]
+        replytext = "<b>Same username already existed!</b>"
+
+    
+    menu = build_menu(button_list, n_cols = 2, header_buttons = None, footer_buttons = None)
 
     # deletes message sent previously by bot
-    print(INFO_STORE[user.id])
     bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
 
     msgsent = bot.send_message(text = replytext,
@@ -342,10 +344,10 @@ def check_QR_code(bot, update):
 """  
 
 # function called by browse_events to get events that are all approved and published
-def getPublishedEvents():
-    published_events_list = ['EVENT 1', 'EVENT 2', 'EVENT 3']
-    published_eventIDs = ['1234', '1040', '0534']
-    return published_events_list, published_eventIDs
+# def getPublishedEvents():
+#     published_events_list = ['EVENT 1', 'EVENT 2', 'EVENT 3']
+#     published_eventIDs = ['1234', '1040', '0534']
+#     return published_events_list, published_eventIDs
 
 
 def browse_events(bot, update):
@@ -360,13 +362,15 @@ def browse_events(bot, update):
     
     # CHECK WITH DATABASE HERE 
     # IF EVENT IS PUBLISHED AND APPROVED, IT WILL BE LISTED HERE
-    published_events_list, published_eventIDs = getPublishedEvents()
+
+    # published_events_list, published_eventIDs = getPublishedEvents()
+    published_events_list = DB().generate_all_pending_events()
 
     BROWSE_EVENTS_MESSAGE = ''
     for i in range(len(published_events_list)):
-        BROWSE_EVENTS_MESSAGE += "\n\n<b>EVENT ID: " + str(published_eventIDs[i]) + "</b>"
-        BROWSE_EVENTS_MESSAGE += "\n\n" + str(published_events_list[i]) 
-        BROWSE_EVENTS_MESSAGE += "\n\n" +"/registerForEvent" + published_eventIDs[i] 
+        BROWSE_EVENTS_MESSAGE += "\n\n<b>EVENT ID: " + str(published_events_list[i][0]) + "</b>"
+        BROWSE_EVENTS_MESSAGE += "\n\n" + str(published_events_list[i][1]) 
+        BROWSE_EVENTS_MESSAGE += "\n\n" +"/registerForEvent" + str(published_events_list[i][0])
     
     replytext = einfo + "<b>Sup! List of cool events going on recently</b>:"
     replytext += "\n\n" + BROWSE_EVENTS_MESSAGE
@@ -588,7 +592,7 @@ def main():
                                 CallbackQueryHandler(callback = dashboard, pattern = '^(login_success)$')],
 
                 FIRST_NAME: [MessageHandler(Filters.text, showtoken),
-                            CallbackQueryHandler(callback = register, pattern = '^(back)$')],
+                            CallbackQueryHandler(callback = register, pattern = '^(register_back)$')],
 
                 # LAST_NAME: [MessageHandler(Filters.text, showtoken),
                 #             CallbackQueryHandler(callback = register, pattern = '^(back)$')],
@@ -633,10 +637,10 @@ def main():
 
     dispatcher.add_handler(CallbackQueryHandler(callback = admin_panel, pattern = '^(return_admin_panel)$'))
 
-    published_events_list, published_eventIDs = getPublishedEvents()
+    published_events_list = DB().generate_all_approved_events()
     # create unique command for each registration of events:
-    for i in range(len(published_eventIDs)):
-        registercommandtext = 'registerForEvent' + str(published_eventIDs[i])
+    for i in range(len(published_events_list)):
+        registercommandtext = 'registerForEvent' + str(published_events_list[i][0])
         dispatcher.add_handler(CommandHandler(command = registercommandtext, callback = confirm_event_registration))
 
     updater.start_polling()
