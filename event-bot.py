@@ -6,7 +6,7 @@ from threading import RLock
 from threading import Thread
 import os
 import sys
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode, ReplyKeyboardRemove
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackQueryHandler
 from emoji import emojize
 import html
@@ -15,7 +15,7 @@ from dbhelper import DB
 from src.model.user import User
 
 # importing calendar module
-import calendar_telegram.telegramcalendar
+from calendar_telegram import telegramcalendar
 
 
 #try:
@@ -58,7 +58,7 @@ einfo = emojize(":information_source: ", use_aliases=True)
 ecross = emojize(":cross: ", use_aliases=True)
 
 # initialize states
-(AFTER_START, LOGIN, VERIFY_LOGIN, FIRST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_START_EDIT_EVENT, CREATE_NEW_EVENT, CREATE_EVENT_DESC, FINAL_CREATE_EVENT, RENAME_EVENT, RENAME_EVENT_CONFIRM, EDIT_EVENT_DESCRIPTION, EDIT_EVENT_DESCRIPTION_CONFIRM, AFTER_ADMIN_PANEL) = range(18)
+(AFTER_START, LOGIN, VERIFY_LOGIN, FIRST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_START_EDIT_EVENT, CREATE_NEW_EVENT, CREATE_EVENT_DESC, FINAL_CREATE_EVENT, RENAME_EVENT, RENAME_EVENT_CONFIRM, EDIT_EVENT_DESCRIPTION, EDIT_EVENT_DESCRIPTION_CONFIRM, BOOK_VENUE, BOOK_TIMING_FINAL, AFTER_ADMIN_PANEL) = range(20)
 
 def start(bot, update):
     button_list = [InlineKeyboardButton(text='Register', callback_data = 'register'),
@@ -223,7 +223,10 @@ def showtoken(bot, update):
     logger.info(userinput)
     print(userinput)
     INFO_STORE[user.id]['first_name'] = userinput
- 
+    
+    # initialize list of selected dates as empty list first
+    INFO_STORE[user.id]['Selected_Dates'] = []
+
     replytext = "Okay! Your information is registered. The following is your user token, please keep it safely! Write it down somewhere :)"
     replytext += "\n\nYour unique User Token: "
     USERTOKEN = User.register(INFO_STORE[user.id]["first_name"])
@@ -421,13 +424,14 @@ def confirm_event_registration(bot, update):
 
 """
 3. managing events
-a) editing events: renaming and descriptions edit 
-b) confirming events
-c) setting dates for events 
-d) booking venues 
-e) creating new events: name and description
+- editing events: renaming and descriptions edit 
+- confirming events
+- setting dates for events 
+- booking venues 
+- creating new events: name and description
 
 """  
+
 def manage_events(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
@@ -462,6 +466,7 @@ def manage_events(bot, update):
 def start_edit_event(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
+    user = query.message.from_user
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
@@ -471,6 +476,9 @@ def start_edit_event(bot, update):
     # stores current event ID and carry it for future edit references 
     INFO_STORE[user.id]['Current_Event_ID'] = eventID
 
+    list_selected_dates = INFO_STORE[user.id]['Selected_Dates']
+
+    # manage events from database here:
     EVENTMANAGEMENTLIST = "LIST OF EVENTS MANAGED HERE"
     # print(INFO_STORE['user_token'])
     print(INFO_STORE['user_token'])
@@ -506,9 +514,9 @@ def start_edit_event(bot, update):
     """
     button_list = []
     # add dates row by row 
-    for date in selected_dates_list:
+    for date in list_selected_dates:
         datesrow = []
-        datesrow.append(InlineKeyboardButton(date, callback_data=data_ignore))
+        datesrow.append(InlineKeyboardButton(date, callback_data=''))
         canceldatetext = ecross + "Cancel"
         canceldatedata = "canceldate" + date
         datesrow.append(InlineKeyboardButton(text = canceldatetext, callback_data=canceldatedata))
@@ -533,6 +541,7 @@ def start_edit_event(bot, update):
 def rename_event(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
+    user = query.message.from_user
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
@@ -587,6 +596,7 @@ def process_rename_event(bot, update):
 def edit_event_desc(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
+    user = query.message.from_user
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
@@ -596,7 +606,7 @@ def edit_event_desc(bot, update):
     button_list = [InlineKeyboardButton(text='Back', callback_data = eventID)]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
         
-    replytext = "<bPlease send me your new Event Descriptions</b>:"
+    replytext = "<b>Please send me your new Event Descriptions</b>:"
         
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
@@ -638,37 +648,97 @@ def process_event_description_edit(bot, update):
 
 # part b) selecting venue and date for event 
 def book_venue(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    user = query.message.from_user
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+
+    button_list = []
+    location_list = ['MPSH', 'TR1', 'TR2', 'TR3', 'TR4', 'Orca Hub', 'Reading Room', 'SR1', 'SR2', 'SR3', 'SR4', 'SR5', 'SR6']
+    for location in location_list:
+        button_list.append(InlineKeyboardButton(text=location, callback_data =location))
     
+    # if go back, will callback currently selected event ID
+    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    button_list.append(InlineKeyboardButton(text='Back', callback_data = eventID))
+    menu = build_menu(button_list, n_cols = 2, header_buttons = None, footer_buttons = None)
+        
+    replytext = "<b>Which Venue do you wish to book?</b>"
+        
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
     return BOOK_VENUE
 
 
-def calendar_handler(bot,update):
-
-    update.message.reply_text("Please select a date: ",
-                        reply_markup=telegramcalendar.create_calendar())
+def book_timing(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+            
+    replytext = "<b>Please select a date:</b>"
+        
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = telegramcalendar.create_calendar(),
+                        parse_mode=ParseMode.HTML)
+    return 
 
 
 def inline_handler(bot,update):
     selected,date = telegramcalendar.process_calendar_selection(bot, update)
+    replytext = "You selected %s" % (date.strftime("%d/%m/%Y"))
+    query = update.callback_query
+    chatid = query.message.chat.id
+    user = query.message.from_user
+
+    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    button_list = [InlineKeyboardButton(text='Return to Event', callback_data = eventID)]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+
     if selected:
-        bot.send_message(chat_id=update.callback_query.from_user.id,
-                        text="You selected %s" % (date.strftime("%d/%m/%Y")),
-                        reply_markup=ReplyKeyboardRemove())
+        # deletes message sent previously by bot (this is the previous admin panel message)
+        bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
 
+        msgsent = bot.send_message(text = replytext,
+                                    chat_id = chatid,
+                                    reply_markup = InlineKeyboardMarkup(menu),
+                                    parse_mode=ParseMode.HTML)
+        
+        #appends message sent by bot itself - the very first message: start message
+        INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
 
-# part c) booking venue 
-def book_venue(bot, update):
+        list_selected_dates = INFO_STORE[user.id]['Selected_Dates']
+        list_selected_dates.append(str(date))
+        INFO_STORE[user.id]['Selected_Dates'] = list_selected_dates
 
-    return START_BOOK_VENUE
-
+        return BOOK_TIMING_FINAL
 
 
 # part d) confirming event and publishing 
 def request_publish_event(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
 
-    return PUBLISH_EVENT_CONFIRMATION
+    replytext = "<b>Okay, your event has been sent to the admins for approval. Please be patient as it will take time for events and venue bookings to be verified and deconflicted.</b>"
+    replytext += "\n\nTo restart the process, press /start anytime."
 
-
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        parse_mode=ParseMode.HTML)
+    
+    return ConversationHandler.END
 
 
 # part e) creating new event
@@ -942,7 +1012,12 @@ def main():
 
                 EDIT_EVENT_DESCRIPTION_CONFIRM: [CallbackQueryHandler(callback = start_edit_event, pattern = '^[0-9]{4}$')],
 
-                AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
+                BOOK_VENUE: [CallbackQueryHandler(callback = start_edit_event, pattern = '^[0-9]{4}$'),
+                            CallbackQueryHandler(callback = book_timing, pattern = '^((?![0-9]{4}).)*$')],
+
+                BOOK_TIMING_FINAL: [CallbackQueryHandler(callback = start_edit_event, pattern = '^[0-9]{4}$')],
+                        
+                AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')]
 
             },
 
@@ -972,7 +1047,6 @@ def main():
         registercommandtext = 'registerForEvent' + str(published_events_list[i][0])
         dispatcher.add_handler(CommandHandler(command = registercommandtext, callback = confirm_event_registration))
 
-    dispatcher.add_handler(CallbackQueryHandler(callback = calendar_handler, pattern = '^(get_calendar)$'))
     dispatcher.add_handler(CallbackQueryHandler(inline_handler))
 
     updater.start_polling()
