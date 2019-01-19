@@ -364,7 +364,7 @@ def browse_events(bot, update):
     # IF EVENT IS PUBLISHED AND APPROVED, IT WILL BE LISTED HERE
 
     # published_events_list, published_eventIDs = getPublishedEvents()
-    published_events_list = DB().generate_all_pending_events()
+    published_events_list = DB().generate_all_approved_events()
 
     BROWSE_EVENTS_MESSAGE = ''
     for i in range(len(published_events_list)):
@@ -464,19 +464,22 @@ def admin_panel(bot, update):
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
 
     # GET EVENTS AND VENUES REQUESTS CALL FROM FUNCTIONS 
-    list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs = getPendingEventsVenues()
+
+    # list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs = getPendingEventsVenues()
+
+    list_events = DB().generate_all_pending_events()
 
     ADMIN_MENU_MESSAGE = "\n\n" + einfo + "<b>List of Event Publications to be Approved:</b>"
-    for i in range(len(list_pending_events)):
-        ADMIN_MENU_MESSAGE += "\n\n<b>EVENT ID: " + str(list_eventIDs[i]) + "</b>"
-        ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_events[i]) 
-        ADMIN_MENU_MESSAGE += "\n\n" +"/approveEvent" + list_eventIDs[i] + " | " +  "/rejectEvent" + list_eventIDs[i] 
+    for i in range(len(list_events)):
+        ADMIN_MENU_MESSAGE += "\n\n<b>EVENT ID: " + str(list_events[i][0]) + "</b>"
+        ADMIN_MENU_MESSAGE += "\n\n" + str(list_events[i][1]) 
+        ADMIN_MENU_MESSAGE += "\n\n" +"/approveEvent" + str(list_events[i][0]) + " | " +  "/rejectEvent" + str(list_events[i][0])
 
-    ADMIN_MENU_MESSAGE += "\n\n" + einfo + "<b>List of Venue Bookings to be Approved:</b>"
-    for i in range(len(list_pending_venues)):
-        ADMIN_MENU_MESSAGE += "\n\n<b>VENUE ID: " + str(list_venueIDs[i]) + "</b>"
-        ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_venues[i])
-        ADMIN_MENU_MESSAGE += "\n\n" + "/approveVenue" + list_venueIDs[i] + " | " +  "/rejectVenue" + list_venueIDs[i] 
+    # ADMIN_MENU_MESSAGE += "\n\n" + einfo + "<b>List of Venue Bookings to be Approved:</b>"
+    # for i in range(len(list_pending_venues)):
+    #     ADMIN_MENU_MESSAGE += "\n\n<b>VENUE ID: " + str(list_venueIDs[i]) + "</b>"
+    #     ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_venues[i])
+    #     ADMIN_MENU_MESSAGE += "\n\n" + "/approveVenue" + list_venueIDs[i] + " | " +  "/rejectVenue" + list_venueIDs[i] 
     
     replytext = "<b>Here is the full list of pending events publication and venue booking requests for you to approve.</b>"
     replytext += ADMIN_MENU_MESSAGE

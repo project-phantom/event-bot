@@ -33,6 +33,7 @@ CREATE TABLE if not exists user_booking(
 );
 
 
+
 -- CREATE TABLE if not exists attendances(
 --   user_id integer not null,
 --   event_id integer not null,
