@@ -227,7 +227,6 @@ def main():
     updater = Updater(TELEGRAM_TOKEN)
     dispatcher=updater.dispatcher
     dispatcher.add_error_handler(error)
-    print('good')
 
     conv_handler = ConversationHandler(
             entry_points = [CommandHandler('start', start)],
