@@ -15,7 +15,9 @@ from dbhelper import DB
 from src.model.user import User
 
 # importing calendar module
-import calendar_telegram.telegramcalendar
+# import calendar_telegram.telegramcalendar
+
+from calendar_telegram import telegramcalendar
 
 
 #try:
@@ -399,6 +401,8 @@ def confirm_event_registration(bot, update):
     chatid = update.message.chat.id
     userinput = update.message.text.strip()[1:]
     logger.info(userinput)
+    ## registerForEvent and user_token
+    DB().register_for_event(userinput, INFO_STORE['user_token'])
 
     replytext = "WOOTS! You have successfully registered for this event! Press /start if you wish to return to the main menu :)"
 
