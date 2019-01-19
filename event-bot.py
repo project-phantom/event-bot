@@ -12,6 +12,8 @@ from emoji import emojize
 import html
 from dbhelper import DB
 
+from src.model.user import User
+
 #try:
 #    from config import TOKEN
 #except:
@@ -135,7 +137,7 @@ def login_verify(bot, update):
 
     USERTOKEN = userinput
     
-    if USERTOKEN == '123': #TEST IF USERTOKEN IS IN DATABASE HERE
+    if User.login(USERTOKEN): #TEST IF USERTOKEN IS IN DATABASE HERE
         INFO_STORE[user.id]['user_token'] = USERTOKEN # only record usertoken if success login match
         button_list = [InlineKeyboardButton(text='Go to Dashboard', callback_data = 'login_success')]
         replytext = "<b>Great! You have successfully logged in.</b>"
@@ -221,7 +223,7 @@ def showtoken(bot, update):
     
     replytext = "Okay! Your information is registered. The following is your user token, please keep it safely! Write it down somewhere :)"
     replytext += "\n\nYour unique User Token: "
-    USERTOKEN = "123"
+    USERTOKEN = User.register(INFO_STORE[user.id]["first_name"] + " " + INFO_STORE[user.id]["last_name"])
     replytext += USERTOKEN
     INFO_STORE[user.id]['user_token'] = USERTOKEN
 
