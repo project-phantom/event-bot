@@ -10,14 +10,21 @@ CREATE TABLE if not exists users (
 
 CREATE TABLE if not exists events (
   event_id integer primary key AUTOINCREMENT,
-  title varchar(255) not null,
+  event_name varchar(255) not null,
   venue_id varchar(255),
-  organiser varchar (255) not null,
+  organizer_id integer,
   description varchar(255),
-  status int not null,
-  cur_attendance integer
+  visible_status int not null,
+  total_attendee integer
   -- qr_image text
 );
+
+      -- self.organizerID = organizerID
+      --   self.name = name
+      --   self.description = description
+      --   self.visibility = visibility
+      --   self.booking = booking
+      --   self.attendee = attendee
 
 CREATE TABLE if not exists attendances(
   user_id integer not null,
@@ -25,11 +32,11 @@ CREATE TABLE if not exists attendances(
   user_status integer
 );
 
-create table if not exists venues(
+create table if not exists booking_venues(
   venue_id integer primary key AUTOINCREMENT,
   venue_name varchar(100) not null,
   date_time datetime,
   book_status integer,
-  event_id integer,
+  event_id integer
 );
 
