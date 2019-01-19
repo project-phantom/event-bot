@@ -14,6 +14,10 @@ from dbhelper import DB
 
 from src.model.user import User
 
+# importing calendar module
+from calendar-telegram-master import telegramcalendar
+
+
 #try:
 #    from config import TOKEN
 #except:
@@ -51,6 +55,7 @@ def build_menu(buttons, n_cols, header_buttons, footer_buttons):
 # emojis
 eheart = emojize(":heart: ", use_aliases=True)
 einfo = emojize(":information_source: ", use_aliases=True)
+ecross = emojize(":cross: ", use_aliases=True)
 
 # initialize states
 (AFTER_START, LOGIN, VERIFY_LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_ADMIN_PANEL, RETURN_ADMIN_PANEL) = range(12)
@@ -406,9 +411,11 @@ def confirm_event_registration(bot, update):
 
 """
 3. managing events
-- creating events
-- editing events
-- confirming events
+a) editing events: renaming and descriptions edit 
+b) confirming events
+c) setting dates for events 
+d) booking venues 
+e) creating new events: name and description
 
 """  
 def manage_events(bot, update):
@@ -417,15 +424,23 @@ def manage_events(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
-
-    button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
-    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
-    EVENTMANAGEMENTLIST = "LIST OF EVENTS MANAGED HERE"
+    user_list_events = ['1234', '2345'] # INPUT LIST OF USER CREATED EVENTS 
+    
+    button_list = []
+    for i in range(len(user_list_events)):
+        buttontext = 'Event ' + user_list_events[i]
+        callbackdata = user_list_events[i]
+        button_list.append(InlineKeyboardButton(text=buttontext, callback_data = callbackdata))
+    
+    button_list.append(InlineKeyboardButton(text='Create New Event', callback_data = 'create_event'))
+    button_list.append(InlineKeyboardButton(text='Back', callback_data = 'back'))
 
-    replytext = "<b>Here are the list of events you have started:</b>"
-    replytext += "\n\n" + EVENTMANAGEMENTLIST
-        
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+
+    replytext = einfo + "<b>List of Events You Have Started</b>"
+    replytext = "\n\nPlease select the event you wish to add more details for. You can also create a new event."
+
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
                         message_id = messageid,
@@ -433,6 +448,265 @@ def manage_events(bot, update):
                         parse_mode=ParseMode.HTML)
     return AFTER_MANAGE_EVENTS
 
+
+def start_edit_event(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+
+    eventID = userinput
+
+    # stores current event ID and carry it for future edit references 
+    INFO_STORE[user.id]['Current_Event_ID'] = eventID
+
+    # MATCH EVENT ID WITH DATABASE 
+    # GET DATABASE EVENT DETAILS:
+    event_venue = 'NIL'
+    event_timeslots = 'NIL'
+    event_status = "NOT APPROVED"
+
+    button_list = []
+    # add dates row by row 
+    for date in selected_dates_list:
+        datesrow = []
+        datesrow.append(InlineKeyboardButton(date, callback_data=data_ignore))
+        canceldatetext = ecross + "Cancel"
+        canceldatedata = "canceldate" + date
+        datesrow.append(InlineKeyboardButton(text = canceldatetext, callback_data=canceldatedata))
+        button_list.append(datesrow)
+    
+    button_list.append(InlineKeyboardButton(text='Rename Event', callback_data = 'rename_event'))
+    button_list.append(InlineKeyboardButton(text='Edit Description', callback_data = 'edit_desc'))
+    button_list.append(InlineKeyboardButton(text='Book Venue', callback_data = 'book_venue'))
+    button_list.append(InlineKeyboardButton(text='Request Publication', callback_data = 'request_publish'))
+    button_list.append(InlineKeyboardButton(text='Back', callback_data = 'back'))
+
+    replytext = einfo + "<b>Showing Information for Event: " + eventID + "</b>"
+    replytext += "EVENT INFORMATION FOR PARTICULAR EVENTID"
+    replytext += "\n- " + "<b>Event Name: </b>" + "INSERT EVENT NAME"
+    replytext += "\n- " + "<b>Description: </b>" + "INSERT EVENT DESCRIPTION"
+    replytext += "\n- " + "<b>Venue Booked: </b>" + event_venue
+    replytext += "\n- " + "<b>Timeslot Booked: </b>" + event_timeslots
+    replytext += "\n- " + "<b>Event Poster: </b>" + "INSERT EVENT CREATOR NAME"
+    replytext += "\n- " + "<b>Current Status: </b>" + event_status
+
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(button_list),
+                        parse_mode=ParseMode.HTML)
+
+    return AFTER_START_EDIT_EVENT
+
+
+# part a) renaming and editing event description 
+def rename_event(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+
+    # if go back, will callback currently selected event ID
+    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    button_list = [InlineKeyboardButton(text='Back', callback_data = eventID)]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+        
+    replytext = "<bPlease send me your new Event Name</b>:"
+        
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
+    return RENAME_EVENT
+
+def process_rename_event(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message.text.strip()[1:]
+    logger.info(userinput)
+
+    #neweventname = userinput
+    # PROCESS EVENT RENAMING 
+    # RECORD NEW EVENT TO DATABASE 
+
+    replytext = "<b>Your new Event Name is saved.</b>"
+
+    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    button_list = [InlineKeyboardButton(text='Return to Event Page', callback_data = eventID)]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+
+    # deletes message sent previously by bot (this is the previous admin panel message)
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    msgsent = bot.send_message(text = replytext,
+                                chat_id = chatid,
+                                reply_markup = InlineKeyboardMarkup(menu),
+                                parse_mode=ParseMode.HTML)
+    
+    #appends message sent by bot itself - the very first message: start message
+    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+
+    return RENAME_EVENT_CONFIRM
+
+
+def edit_event_desc(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+
+    # if go back, will callback currently selected event ID
+    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    button_list = [InlineKeyboardButton(text='Back', callback_data = eventID)]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+        
+    replytext = "<bPlease send me your new Event Descriptions</b>:"
+        
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
+
+    return EDIT_EVENT_DESCRIPTION
+
+def process_event_description_edit(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message.text.strip()[1:]
+    logger.info(userinput)
+
+    #neweventdescription = userinput
+    # PROCESS EVENT EDIT 
+    # RECORD NEW EVENT DESCRIPTION TO DATABASE 
+
+    replytext = "<b>Your new Event Description is saved.</b>"
+
+    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    button_list = [InlineKeyboardButton(text='Return to Event Page', callback_data = eventID)]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+
+    # deletes message sent previously by bot (this is the previous admin panel message)
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    msgsent = bot.send_message(text = replytext,
+                                chat_id = chatid,
+                                reply_markup = InlineKeyboardMarkup(menu),
+                                parse_mode=ParseMode.HTML)
+    
+    #appends message sent by bot itself - the very first message: start message
+    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+
+    return EDIT_EVENT_DESCRIPTION_CONFIRM
+
+
+# part b) selecting venue and date for event 
+def book_venue(bot, update):
+    
+    return BOOK_VENUE
+
+
+def calendar_handler(bot,update):
+
+    update.message.reply_text("Please select a date: ",
+                        reply_markup=telegramcalendar.create_calendar())
+
+
+def inline_handler(bot,update):
+    selected,date = telegramcalendar.process_calendar_selection(bot, update)
+    if selected:
+        bot.send_message(chat_id=update.callback_query.from_user.id,
+                        text="You selected %s" % (date.strftime("%d/%m/%Y")),
+                        reply_markup=ReplyKeyboardRemove())
+
+
+# part c) booking venue 
+def book_venue(bot, update):
+
+    return START_BOOK_VENUE
+
+
+
+# part d) confirming event and publishing 
+def request_publish_event(bot, update):
+
+    return PUBLISH_EVENT_CONFIRMATION
+
+
+
+
+# part e) creating new event
+def start_create_event(bot, update):
+    query = update.callback_query
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
+
+    button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+
+    replytext = "<b>What is your Event Name?</b>"
+
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
+    return CREATE_NEW_EVENT
+
+
+def create_event_name(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message.text.strip()[1:]
+    logger.info(userinput)
+
+    replytext = "<b>Please include your Event Description:</b>"
+
+    # deletes message sent previously by bot (this is the previous admin panel message)
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    msgsent = bot.send_message(text = replytext,
+                                chat_id = chatid,
+                                parse_mode=ParseMode.HTML)
+    
+    #appends message sent by bot itself - the very first message: start message
+    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+
+    return CREATE_EVENT_DESC
+
+
+def final_create_event(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message.text.strip()[1:]
+    logger.info(userinput)
+
+    replytext = "<b>Great! Your basic Event details are created.</b>"
+    replytext += "\n\n<b>The following is your generated Event ID: </b>"
+    replytext += "INSERT TOKEN ID" # GENERATE TOKEN 
+
+    button_list = [InlineKeyboardButton(text='Book Venue and Time', callback_data = 'back_to_manage_events')]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+
+    # deletes message sent previously by bot (this is the previous admin panel message)
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    msgsent = bot.send_message(text = replytext,
+                                chat_id = chatid,
+                                reply_markup = InlineKeyboardMarkup(menu),
+                                parse_mode=ParseMode.HTML)
+    
+    #appends message sent by bot itself - the very first message: start message
+    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+
+    return FINAL_CREATE_EVENT
 
 
 """
@@ -607,7 +881,33 @@ def main():
 
                 AFTER_BROWSE_EVENTS: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
 
-                AFTER_MANAGE_EVENTS: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
+                AFTER_MANAGE_EVENTS: [CallbackQueryHandler(callback = start_edit_event, pattern = '^[0-9]{4}$'),
+                                        CallbackQueryHandler(callback = start_create_event, pattern = '^(create_event)$'),
+                                        CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
+                
+                AFTER_START_EDIT_EVENT: [CallbackQueryHandler(callback = cancel_date, pattern = '^(canceldate)'),
+                                        CallbackQueryHandler(callback = rename_event, pattern = '^(rename_event)$'),
+                                        CallbackQueryHandler(callback = edit_event_desc, pattern = '^(edit_desc)$'),
+                                        CallbackQueryHandler(callback = book_venue, pattern = '^(book_venue)$'),
+                                        CallbackQueryHandler(callback = request_publish_event, pattern = '^(request_publish)$'),
+                                        CallbackQueryHandler(callback = manage_events, pattern = '^(back)$')],
+                
+                CREATE_NEW_EVENT: [MessageHandler(Filters.text, create_event_name),
+                                    CallbackQueryHandler(callback = manage_events, pattern = '^(back)$')],
+
+                CREATE_EVENT_DESC: [MessageHandler(Filters.text, final_create_event)],
+
+                FINAL_CREATE_EVENT: [CallbackQueryHandler(callback = manage_events, pattern = '^(back_to_manage_events)$')],
+
+                RENAME_EVENT: [MessageHandler(Filters.text, process_rename_event),
+                                CallbackQueryHandler(callback = start_edit_event, pattern = '^[0-9]{4}$')],
+
+                RENAME_EVENT_CONFIRM: [CallbackQueryHandler(callback = start_edit_event, pattern = '^[0-9]{4}$')],
+
+                EDIT_EVENT_DESCRIPTION: [MessageHandler(Filters.text, process_event_description_edit),
+                                        CallbackQueryHandler(callback = start_edit_event, pattern = '^[0-9]{4}$')],
+
+                EDIT_EVENT_DESCRIPTION_CONFIRM: [CallbackQueryHandler(callback = start_edit_event, pattern = '^[0-9]{4}$')],
 
                 AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
 
@@ -638,6 +938,9 @@ def main():
     for i in range(len(published_eventIDs)):
         registercommandtext = 'registerForEvent' + str(published_eventIDs[i])
         dispatcher.add_handler(CommandHandler(command = registercommandtext, callback = confirm_event_registration))
+
+    dispatcher.add_handler(CallbackQueryHandler(callback = calendar_handler, pattern = '^(get_calendar)$'))
+    dispatcher.add_handler(CallbackQueryHandler(inline_handler))
 
     updater.start_polling()
     updater.idle()
