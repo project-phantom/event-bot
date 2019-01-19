@@ -10,6 +10,12 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler, CallbackQueryHandler
 from emoji import emojize
 import html
+from dbhelper import DB
+
+try:
+    from config import TOKEN
+except:
+    pass
 
 #import 'src\model\user.py'
 
@@ -17,7 +23,7 @@ import html
 logging.basicConfig(
     format='%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
     datefmt="%Y-%m-%d %H:%M:%S",
-    level = logging.INFO)
+    level = logging.ERROR)
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +32,7 @@ INFO_STORE = {}
 
 #Set up telegram token 
 TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
+# TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
 
 # Building menu for every occasion 
 def build_menu(buttons, n_cols, header_buttons, footer_buttons):
@@ -38,9 +45,10 @@ def build_menu(buttons, n_cols, header_buttons, footer_buttons):
 
 # emojis
 eheart = emojize(":heart: ", use_aliases=True)
+einfo = emojize(":information_source: ", use_aliases=True)
 
 # initialize states
-(AFTER_START, LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_ADMIN_PANEL) = range(10)
+(AFTER_START, LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_ADMIN_PANEL, RETURN_ADMIN_PANEL) = range(11)
 
 def start(bot, update):
     button_list = [InlineKeyboardButton(text='Register', callback_data = 'register'),
@@ -261,6 +269,37 @@ def mark_attendance(bot, update):
     return AFTER_MARK_ATTENDANCE
 
 
+def check_QR_code(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message
+    logger.info("User has sent QR code.")
+
+    qrcorrect = True
+
+    # deletes message sent previously by bot
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    # if qr code in database
+    if qrcorrect == True:
+        replytext = "Your event registration has completed. Your attendance is successfully recorded.\n\nEnjoy the event!"
+        msgsent = bot.send_message(text = replytext,
+                                    chat_id = chatid,
+                                    parse_mode=ParseMode.HTML)
+        #appends message sent by bot itself - the very first message: start message
+        INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+        return ConversationHandler.END
+
+    else: 
+        replytext = "There is some error in the image you have sent. The event has either expired or it does not exist. Please contact the admins for the event if you are unsure.\n\nTo return to the main menu, please press /start."
+        msgsent = bot.send_message(text = replytext,
+                                    chat_id = chatid,
+                                    parse_mode=ParseMode.HTML)
+        #appends message sent by bot itself - the very first message: start message
+        INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+        return ConversationHandler.END
+
+
 def browse_events(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
@@ -306,6 +345,13 @@ def manage_events(bot, update):
                         parse_mode=ParseMode.HTML)
     return AFTER_MANAGE_EVENTS
 
+# function called by admin_panel to get event and venues that are all pending 
+def getPendingEventsVenues():
+    list_pending_events = ['EVENT 1', 'EVENT 2', 'EVENT 3']
+    list_pending_venues = ['VENUE 1', 'VENUE 2', 'VENUE 3']
+    list_eventIDs = ['1234', '1040', '0534']
+    list_venueIDs = ['1204', '1200', '0134']
+    return list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs
 
 def admin_panel(bot, update):
     query = update.callback_query
@@ -317,10 +363,23 @@ def admin_panel(bot, update):
     button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
 
-    ADMIN_MENU_MESSAGE = "LIST OF EVENTS TO BE APPROVED / REJECTED HERE; WITH URL LINKS."
+    # GET EVENTS AND VENUES REQUESTS CALL FROM FUNCTIONS 
+    list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs = getPendingEventsVenues()
 
-    replytext = "<b>Here are a list of pending events for you to approve:</b>"
-    replytext += "\n\n" + ADMIN_MENU_MESSAGE
+    ADMIN_MENU_MESSAGE = "\n\n" + einfo + "<b>List of Event Publications to be Approved:</b>"
+    for i in range(len(list_pending_events)):
+        ADMIN_MENU_MESSAGE += "\n\n<b>EVENT ID: " + str(list_eventIDs[i]) + "</b>"
+        ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_events[i]) 
+        ADMIN_MENU_MESSAGE += "\n\n" +"/approveEvent" + list_eventIDs[i] + " | " +  "/rejectEvent" + list_eventIDs[i] 
+
+    ADMIN_MENU_MESSAGE += "\n\n" + einfo + "<b>List of Venue Bookings to be Approved:</b>"
+    for i in range(len(list_pending_venues)):
+        ADMIN_MENU_MESSAGE += "\n\n<b>VENUE ID: " + str(list_venueIDs[i]) + "</b>"
+        ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_venues[i])
+        ADMIN_MENU_MESSAGE += "\n\n" + "/approveVenue" + list_venueIDs[i] + " | " +  "/rejectVenue" + list_venueIDs[i] 
+    
+    replytext = "<b>Here is the full list of pending events publication and venue booking requests for you to approve.</b>"
+    replytext += ADMIN_MENU_MESSAGE
     
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
@@ -328,6 +387,69 @@ def admin_panel(bot, update):
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
     return AFTER_ADMIN_PANEL
+
+
+# update database, delete previous admin panel msg, ask user to press ok and trigger returning to new admin panel
+def admin_process_event(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message.text.strip()[1:]
+    logger.info(userinput)
+
+    button_list = [InlineKeyboardButton(text='OK', callback_data = 'return_admin_panel')]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+    replytext = "Okay! Your previous decision has been recorded. Press 'OK' to return to the Admin Panel."
+
+    if userinput[:-5] == 'approveEvent':
+        logger.info("Admin has approved event")
+        # PROCESS APPROVE WITH DATABASE HERE
+
+    elif userinput[:-5] == 'rejectEvent':
+        logger.info("Admin has rejected event")
+        # PROCESS REJECT WITH DATABASE HERE
+ 
+    # deletes message sent previously by bot (this is the previous admin panel message)
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    msgsent = bot.send_message(text = replytext,
+                                chat_id = chatid,
+                                reply_markup = InlineKeyboardMarkup(menu),
+                                parse_mode=ParseMode.HTML)
+    
+    #appends message sent by bot itself - the very first message: start message
+    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+    return 
+
+
+def admin_process_venue(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message.text.strip()[1:]
+    logger.info(userinput)
+
+    button_list = [InlineKeyboardButton(text='OK', callback_data = 'return_admin_panel')]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+    replytext = "Okay! Your previous decision has been recorded. Press 'OK' to return to the Admin Panel."
+
+    if userinput[:-5] == 'approveVenue':
+        logger.info("Admin has approved venue")
+        # PROCESS APPROVE WITH DATABASE HERE
+
+    elif userinput[:-5] == 'rejectVenue':
+        logger.info("Admin has approved venue")
+        # PROCESS REJECT WITH DATABASE HERE
+ 
+    # deletes message sent previously by bot (this is the previous admin panel message)
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    msgsent = bot.send_message(text = replytext,
+                                chat_id = chatid,
+                                reply_markup = InlineKeyboardMarkup(menu),
+                                parse_mode=ParseMode.HTML)
+    
+    #appends message sent by bot itself - the very first message: start message
+    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+    return
 
 
 def log_out(bot, update):
@@ -344,8 +466,6 @@ def log_out(bot, update):
                         message_id = messageid,
                         parse_mode=ParseMode.HTML)
     return ConversationHandler.END
-
-
 
 
 def error(bot, update, error):
@@ -383,20 +503,36 @@ def main():
                                 CallbackQueryHandler(callback = admin_panel, pattern = '^(admin_panel)$'),
                                 CallbackQueryHandler(callback = log_out, pattern = '^(log_out)$')],
                 
-                AFTER_MARK_ATTENDANCE: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
+                AFTER_MARK_ATTENDANCE: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$'),
+                                        MessageHandler(Filters.photo, check_QR_code)],
 
                 AFTER_BROWSE_EVENTS: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
 
                 AFTER_MANAGE_EVENTS: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
 
-                AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')]
-    
+                AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
+
             },
 
             fallbacks = [CommandHandler('cancel', cancel)],
             allow_reentry = True
         )
     dispatcher.add_handler(conv_handler)
+
+    list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs = getPendingEventsVenues()
+    # create unique command for each approval and rejection of the events and venue bookings:
+    for i in range(len(list_eventIDs)):
+        approvecommandtext = 'approveEvent' + str(list_eventIDs[i])
+        rejectcommandtext = 'rejectEvent' + str(list_eventIDs[i])
+        dispatcher.add_handler(CommandHandler(command = approvecommandtext, callback = admin_process_event))
+        dispatcher.add_handler(CommandHandler(command = rejectcommandtext, callback = admin_process_event))
+    for i in range(len(list_venueIDs)):
+        approvecommandtext = 'approveVenue' + str(list_venueIDs[i])
+        rejectcommandtext = 'rejectVenue' + str(list_venueIDs[i])
+        dispatcher.add_handler(CommandHandler(command = approvecommandtext, callback = admin_process_venue))
+        dispatcher.add_handler(CommandHandler(command = rejectcommandtext, callback = admin_process_venue))
+
+    dispatcher.add_handler(CallbackQueryHandler(callback = admin_panel, pattern = '^(return_admin_panel)$'))
 
     updater.start_polling()
     updater.idle()
