@@ -59,7 +59,7 @@ einfo = emojize(":information_source: ", use_aliases=True)
 ecross = emojize(":cross: ", use_aliases=True)
 
 # initialize states
-(AFTER_START, LOGIN, VERIFY_LOGIN, FIRST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_START_EDIT_EVENT, CREATE_NEW_EVENT, CREATE_EVENT_DESC, FINAL_CREATE_EVENT, RENAME_EVENT, RENAME_EVENT_CONFIRM, EDIT_EVENT_DESCRIPTION, EDIT_EVENT_DESCRIPTION_CONFIRM, BOOK_VENUE, BOOK_TIMING_FINAL, AFTER_ADMIN_PANEL) = range(20)
+(AFTER_START, LOGIN, VERIFY_LOGIN, FIRST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_START_EDIT_EVENT, CREATE_NEW_EVENT, CREATE_EVENT_DESC, FINAL_CREATE_EVENT, RENAME_EVENT, RENAME_EVENT_CONFIRM, EDIT_EVENT_DESCRIPTION, EDIT_EVENT_DESCRIPTION_CONFIRM, BOOK_VENUE, BOOK_TIMING, BOOK_TIMING_FINAL, AFTER_ADMIN_PANEL) = range(21)
 
 def start(bot, update):
     button_list = [InlineKeyboardButton(text='Register', callback_data = 'register'),
@@ -692,7 +692,7 @@ def book_timing(bot, update):
                         message_id = messageid,
                         reply_markup = telegramcalendar.create_calendar(),
                         parse_mode=ParseMode.HTML)
-    return 
+    return BOOK_TIMING
 
 
 def inline_handler(bot,update):
@@ -1025,6 +1025,8 @@ def main():
                 BOOK_VENUE: [CallbackQueryHandler(callback = start_edit_event, pattern = '^[0-9]{4}$'),
                             CallbackQueryHandler(callback = book_timing, pattern = '^((?![0-9]{4}).)*$')],
 
+                BOOK_TIMING: [CallbackQueryHandler(callback = inline_handler)],
+
                 BOOK_TIMING_FINAL: [CallbackQueryHandler(callback = start_edit_event, pattern = '^[0-9]{4}$')],
                         
                 AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')]
@@ -1056,8 +1058,6 @@ def main():
     for i in range(len(published_events_list)):
         registercommandtext = 'registerForEvent' + str(published_events_list[i][0])
         dispatcher.add_handler(CommandHandler(command = registercommandtext, callback = confirm_event_registration))
-
-    dispatcher.add_handler(CallbackQueryHandler(inline_handler))
 
     updater.start_polling()
     updater.idle()
