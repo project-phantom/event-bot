@@ -227,35 +227,35 @@ def main():
     updater = Updater(TELEGRAM_TOKEN)
     dispatcher=updater.dispatcher
     dispatcher.add_error_handler(error)
+    print('good')
 
     conv_handler = ConversationHandler(
-        entry_points = [CommandHandler('start', start)],
+            entry_points = [CommandHandler('start', start)],
 
-        states = {
-            AFTER_START: [CallbackQueryHandler(callback = login, pattern = 'login'),
+            states = {
+                AFTER_START: [CallbackQueryHandler(callback = login, pattern = 'login'),
                             CallbackQueryHandler(callback = register, pattern = 'register')],
 
-            LOGIN: [CallbackQueryHandler(callback = dashboard, pattern = 'dashboard'),
-                    CallbackQueryHandler(callback = start, pattern = 'back')],
-
-            FIRST_NAME: [MessageHandler(Filters.text, lastname),
+                LOGIN: [CallbackQueryHandler(callback = dashboard, pattern = 'dashboard'),
                         CallbackQueryHandler(callback = start, pattern = 'back')],
 
-            LAST_NAME: [MessageHandler(Filters.text, showtoken),
-                        CallbackQueryHandler(callback = register, pattern = 'back')],
+                FIRST_NAME: [MessageHandler(Filters.text, lastname),
+                            CallbackQueryHandler(callback = start, pattern = 'back')],
 
-            NEWLOGIN: [CallbackQueryHandler(callback = dashboard, pattern = 'dashboard'),
-                        CallbackQueryHandler(callback = showtoken, pattern = 'back')], 
+                LAST_NAME: [MessageHandler(Filters.text, showtoken),
+                            CallbackQueryHandler(callback = register, pattern = 'back')],
 
-            AFTER_DASHBOARD: [CallbackQueryHandler(callback = dashboard, pattern = 'attendance'),
-                            CallbackQueryHandler(callback = dashboard, pattern = 'browse_events'),
-                            CallbackQueryHandler(callback = dashboard, pattern = 'manage_events'),
-                            CallbackQueryHandler(callback = dashboard, pattern = 'admin_panel'),
-                            CallbackQueryHandler(callback = dashboard, pattern = 'log_out')]
-        },
-        fallbacks = [CommandHandler('cancel', cancel)],
-        allow_reentry = True
-    )
+                NEWLOGIN: [CallbackQueryHandler(callback = dashboard, pattern = 'dashboard'),
+                            CallbackQueryHandler(callback = showtoken, pattern = 'back')], 
+
+                AFTER_DASHBOARD: [CallbackQueryHandler(callback = dashboard, pattern = 'attendance'),
+                                CallbackQueryHandler(callback = dashboard, pattern = 'browse_events'),
+                                CallbackQueryHandler(callback = dashboard, pattern = 'manage_events'),
+                                CallbackQueryHandler(callback = dashboard, pattern = 'admin_panel'),
+                                CallbackQueryHandler(callback = dashboard, pattern = 'log_out')]},
+            fallbacks = [CommandHandler('cancel', cancel)],
+            allow_reentry = True
+        )
     dispatcher.add_handler(conv_handler)
 
     updater.start_polling()
