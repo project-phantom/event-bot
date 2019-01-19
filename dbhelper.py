@@ -2,7 +2,7 @@ import sqlite3
 from uuid import uuid4
 import random
 from datetime import datetime
-from pyzbar.pyzbar import decode
+#from pyzbar.pyzbar import decode
 
 class DB:
 
@@ -114,8 +114,8 @@ class DB:
 		self.conn.execute(stmt, args)
 		self.conn.commit()
 
-	def mark_attendance(self, qr_image, user_id):
-		return str(decode(qr_image)[0].data)[2:-1]
+	#def mark_attendance(self, qr_image, user_id):
+		#return str(decode(qr_image)[0].data)[2:-1]
 
 
 
