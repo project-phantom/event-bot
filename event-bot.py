@@ -35,7 +35,7 @@ INFO_STORE = {}
 #Set up telegram token 
 TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
 #if TOKEN:
-TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
+# TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
 #else:
 #    TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
 
