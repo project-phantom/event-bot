@@ -495,7 +495,7 @@ def start_edit_event(bot, update):
         replytext += "\n\n" +"status:" + str(list_events[i][2])
 
     """ 
-    CPF'S CODE:
+    CPF'S CODE: 
     """
     # MATCH EVENT ID WITH DATABASE 
     # GET DATABASE EVENT DETAILS:
