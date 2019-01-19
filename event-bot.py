@@ -38,6 +38,7 @@ def build_menu(buttons, n_cols, header_buttons, footer_buttons):
 
 # emojis
 eheart = emojize(":heart: ", use_aliases=True)
+einfo = emojize(":information_source: ", use_aliases=True)
 
 # initialize states
 (AFTER_START, LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_ADMIN_PANEL, RETURN_ADMIN_PANEL) = range(11)
@@ -358,13 +359,13 @@ def admin_panel(bot, update):
     # GET EVENTS AND VENUES REQUESTS CALL FROM FUNCTIONS 
     list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs = getPendingEventsVenues()
 
-    ADMIN_MENU_MESSAGE = "\n\n<b> <<< List of Event Publications to be Approved: >>> </b>"
+    ADMIN_MENU_MESSAGE = "\n\n" + einfo + "<b>List of Event Publications to be Approved:</b>"
     for i in range(len(list_pending_events)):
         ADMIN_MENU_MESSAGE += "\n\n<b>EVENT ID: " + str(list_eventIDs[i]) + "</b>"
         ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_events[i]) 
         ADMIN_MENU_MESSAGE += "\n\n" +"/approveEvent" + list_eventIDs[i] + " | " +  "/rejectEvent" + list_eventIDs[i] 
 
-    ADMIN_MENU_MESSAGE += "\n\n<b> <<< List of Venue Bookings to be Approved: >>> </b>"
+    ADMIN_MENU_MESSAGE += "\n\n" + einfo + "<b>List of Venue Bookings to be Approved:</b>"
     for i in range(len(list_pending_venues)):
         ADMIN_MENU_MESSAGE += "\n\n<b>VENUE ID: " + str(list_venueIDs[i]) + "</b>"
         ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_venues[i])
