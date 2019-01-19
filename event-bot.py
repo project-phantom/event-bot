@@ -32,7 +32,6 @@ INFO_STORE = {}
 
 #Set up telegram token 
 TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
-# TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
 
 # Building menu for every occasion 
 def build_menu(buttons, n_cols, header_buttons, footer_buttons):
@@ -48,7 +47,7 @@ eheart = emojize(":heart: ", use_aliases=True)
 einfo = emojize(":information_source: ", use_aliases=True)
 
 # initialize states
-(AFTER_START, LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_ADMIN_PANEL, RETURN_ADMIN_PANEL) = range(11)
+(AFTER_START, LOGIN, VERIFY_LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_ADMIN_PANEL, RETURN_ADMIN_PANEL) = range(12)
 
 def start(bot, update):
     button_list = [InlineKeyboardButton(text='Register', callback_data = 'register'),
@@ -122,6 +121,39 @@ def login(bot, update):
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
     return LOGIN
+
+
+def login_verify(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = html.escape(update.message.text.strip())
+    logger.info(userinput)
+
+    USERTOKEN = userinput
+    
+    if USERTOKEN == '123': #TEST IF USERTOKEN IS IN DATABASE HERE
+        INFO_STORE[user.id]['user_token'] = USERTOKEN # only record usertoken if success login match
+        button_list = [InlineKeyboardButton(text='Go to Dashboard', callback_data = 'login_success')]
+        replytext = "<b>Great! You have successfully logged in.</b>"
+
+    else: 
+        button_list = [InlineKeyboardButton(text='FILL UP AGAIN', callback_data = 'login_failure')]
+        replytext = "<b>ERROR. Your User Token is not found. Please try again or register first.</b>"
+
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+    
+    # deletes message sent previously by bot
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    msgsent = bot.send_message(text = replytext,
+                                chat_id = chatid,
+                                reply_markup = InlineKeyboardMarkup(menu),
+                                parse_mode=ParseMode.HTML)
+    
+    #appends message sent by bot itself - the very first message: start message
+    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+
+    return VERIFY_LOGIN  
 
 
 def register(bot, update):
@@ -217,39 +249,18 @@ def dashboard(bot, update):
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     replytext = "<b>DASHBOARD:</b>"
 
-    try:
-        user = update.message.from_user
-        chatid = update.message.chat.id
-        userinput = html.escape(update.message.text.strip())
-        logger.info(userinput)
-
-        USERTOKEN = userinput
-        INFO_STORE[user.id]['user_token'] = USERTOKEN
-
-        # deletes message sent previously by bot
-        bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
-
-        msgsent = bot.send_message(text = replytext,
-                                    chat_id = chatid,
-                                    reply_markup = InlineKeyboardMarkup(menu),
-                                    parse_mode=ParseMode.HTML)
+    query = update.callback_query
+    user = query.from_user
+    chatid = query.message.chat.id
+    messageid = query.message.message_id
+    userinput = html.escape(query.data)
+    logger.info(userinput)
     
-        #appends message sent by bot itself - the very first message: start message
-        INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
-
-    except AttributeError:
-        query = update.callback_query
-        user = query.from_user
-        chatid = query.message.chat.id
-        messageid = query.message.message_id
-        userinput = html.escape(query.data)
-        logger.info(userinput)
-        
-        bot.editMessageText(text = replytext,
-                            chat_id = chatid,
-                            message_id = messageid,
-                            reply_markup = InlineKeyboardMarkup(menu),
-                            parse_mode=ParseMode.HTML)
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
 
     return AFTER_DASHBOARD
 
@@ -323,6 +334,13 @@ def check_QR_code(bot, update):
 
 """  
 
+# function called by browse_events to get events that are all approved and published
+def getPublishedEvents():
+    published_events_list = ['EVENT 1', 'EVENT 2', 'EVENT 3']
+    published_eventIDs = ['1234', '1040', '0534']
+    return published_events_list, published_eventIDs
+
+
 def browse_events(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
@@ -335,21 +353,49 @@ def browse_events(bot, update):
     
     # CHECK WITH DATABASE HERE 
     # IF EVENT IS PUBLISHED AND APPROVED, IT WILL BE LISTED HERE
-    published_events = "PAKORN YOUR JOB"
+    published_events_list, published_eventIDs = getPublishedEvents()
 
-    EVENTLIST = "INSERT EVENT HERE"
-
+    BROWSE_EVENTS_MESSAGE = ''
+    for i in range(len(published_events_list)):
+        BROWSE_EVENTS_MESSAGE += "\n\n<b>EVENT ID: " + str(published_eventIDs[i]) + "</b>"
+        BROWSE_EVENTS_MESSAGE += "\n\n" + str(published_events_list[i]) 
+        BROWSE_EVENTS_MESSAGE += "\n\n" +"/registerForEvent" + published_eventIDs[i] 
     
-    replytext = "<b>Sup! List of cool events going on recently</b>:"
-    replytext += "\n\n" + EVENTLIST
+    replytext = einfo + "<b>Sup! List of cool events going on recently</b>:"
+    replytext += "\n\n" + BROWSE_EVENTS_MESSAGE
         
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
                         message_id = messageid,
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
+
     return AFTER_BROWSE_EVENTS
 
+
+def confirm_event_registration(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message.text.strip()[1:]
+    logger.info(userinput)
+
+    replytext = "WOOTS! You have successfully registered for this event! Press /start if you wish to return to the main menu :)"
+
+    if userinput[:-5] == 'registerForEvent':
+        logger.info("User will be starting registration for this event.")
+        # PROCESS APPROVE WITH DATABASE HERE
+
+    # deletes message sent previously by bot (this is the previous admin panel message)
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    msgsent = bot.send_message(text = replytext,
+                                chat_id = chatid,
+                                parse_mode=ParseMode.HTML)
+    
+    #appends message sent by bot itself - the very first message: start message
+    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+
+    return ConversationHandler.END
 
 
 """
@@ -380,8 +426,6 @@ def manage_events(bot, update):
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
     return AFTER_MANAGE_EVENTS
-
-
 
 
 
@@ -530,8 +574,11 @@ def main():
                 AFTER_START: [CallbackQueryHandler(callback = login, pattern = '^(login)$'),
                             CallbackQueryHandler(callback = register, pattern = '^(register)$')],
 
-                LOGIN: [MessageHandler(Filters.text, dashboard),
+                LOGIN: [MessageHandler(Filters.text, login_verify),
                         CallbackQueryHandler(callback = start, pattern = '^(back)$')],
+
+                VERIFY_LOGIN: [CallbackQueryHandler(callback = login, pattern = '^(login_fail)$'),
+                                CallbackQueryHandler(callback = dashboard, pattern = '^(login_success)$')],
 
                 FIRST_NAME: [MessageHandler(Filters.text, lastname),
                             CallbackQueryHandler(callback = start, pattern = '^(back)$')],
@@ -578,6 +625,12 @@ def main():
         dispatcher.add_handler(CommandHandler(command = rejectcommandtext, callback = admin_process_venue))
 
     dispatcher.add_handler(CallbackQueryHandler(callback = admin_panel, pattern = '^(return_admin_panel)$'))
+
+    published_events_list, published_eventIDs = getPublishedEvents()
+    # create unique command for each registration of events:
+    for i in range(len(published_eventIDs)):
+        registercommandtext = 'registerForEvent' + str(published_eventIDs[i])
+        dispatcher.add_handler(CommandHandler(command = registercommandtext, callback = confirm_event_registration))
 
     updater.start_polling()
     updater.idle()
