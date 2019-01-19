@@ -73,11 +73,11 @@ def start(bot, update):
         userinput = html.escape(query.data)
         logger.info(userinput)
 
-        bot.editMessage(text = replytext,
-                        chat_id = chatid,
-                        message_id = messageid,
-                        reply_markup = InlineKeyboardMarkup(menu),
-                        parse_mode=ParseMode.HTML)
+        bot.editMessageText(text = replytext,
+                            chat_id = chatid,
+                            message_id = messageid,
+                            reply_markup = InlineKeyboardMarkup(menu),
+                            parse_mode=ParseMode.HTML)
     return AFTER_START
 
 
@@ -107,11 +107,11 @@ def login(bot, update):
     
     replytext = "<b>Please type and send your unique token ID:</b>"
         
-    bot.editMessage(text = replytext,
-                    chat_id = chatid,
-                    message_id = messageid,
-                    reply_markup = InlineKeyboardMarkup(menu),
-                    parse_mode=ParseMode.HTML)
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
     return LOGIN
 
 
@@ -127,11 +127,11 @@ def register(bot, update):
     
     replytext = "What is your <b>First Name</b>?"
         
-    bot.editMessage(text = replytext,
-                    chat_id = chatid,
-                    message_id = messageid,
-                    reply_markup = InlineKeyboardMarkup(menu),
-                    parse_mode=ParseMode.HTML)
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
     return FIRST_NAME
 
 def lastname(bot, update):
@@ -209,11 +209,11 @@ def dashboard(bot, update):
     
     replytext = "DASHBOARD:"
         
-    bot.editMessage(text = replytext,
-                    chat_id = chatid,
-                    message_id = messageid,
-                    reply_markup = InlineKeyboardMarkup(menu),
-                    parse_mode=ParseMode.HTML)
+    bot.editMessageText(text = replytext,
+                        chat_id = chatid,
+                        message_id = messageid,
+                        reply_markup = InlineKeyboardMarkup(menu),
+                        parse_mode=ParseMode.HTML)
 
     return AFTER_DASHBOARD
 
