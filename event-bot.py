@@ -261,6 +261,37 @@ def mark_attendance(bot, update):
     return AFTER_MARK_ATTENDANCE
 
 
+def check_QR_code(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message
+    logger.info("User has sent QR code.")
+
+    qrcorrect = True
+
+    # deletes message sent previously by bot
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    # if qr code in database
+    if qrcorrect == True:
+        replytext = "Your event registration has completed. Your attendance is successfully recorded.\n\nEnjoy the event!"
+        msgsent = bot.send_message(text = replytext,
+                                    chat_id = chatid,
+                                    parse_mode=ParseMode.HTML)
+        #appends message sent by bot itself - the very first message: start message
+        INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+        return ConversationHandler.END
+
+    else: 
+        replytext = "There is some error in the image you have sent. The event has either expired or it does not exist. Please contact the admins for the event if you are unsure.\n\nTo return to the main menu, please press /start."
+        msgsent = bot.send_message(text = replytext,
+                                    chat_id = chatid,
+                                    parse_mode=ParseMode.HTML)
+        #appends message sent by bot itself - the very first message: start message
+        INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+        return ConversationHandler.END
+
+
 def browse_events(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
@@ -346,8 +377,6 @@ def log_out(bot, update):
     return ConversationHandler.END
 
 
-
-
 def error(bot, update, error):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, error)
@@ -383,14 +412,15 @@ def main():
                                 CallbackQueryHandler(callback = admin_panel, pattern = '^(admin_panel)$'),
                                 CallbackQueryHandler(callback = log_out, pattern = '^(log_out)$')],
                 
-                AFTER_MARK_ATTENDANCE: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
+                AFTER_MARK_ATTENDANCE: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$'),
+                                        MessageHandler(Filters.photo, check_QR_code)],
 
                 AFTER_BROWSE_EVENTS: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
 
                 AFTER_MANAGE_EVENTS: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
 
-                AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')]
-    
+                AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
+
             },
 
             fallbacks = [CommandHandler('cancel', cancel)],
