@@ -344,10 +344,10 @@ def check_QR_code(bot, update):
 """  
 
 # function called by browse_events to get events that are all approved and published
-def getPublishedEvents():
-    published_events_list = ['EVENT 1', 'EVENT 2', 'EVENT 3']
-    published_eventIDs = ['1234', '1040', '0534']
-    return published_events_list, published_eventIDs
+# def getPublishedEvents():
+#     published_events_list = ['EVENT 1', 'EVENT 2', 'EVENT 3']
+#     published_eventIDs = ['1234', '1040', '0534']
+#     return published_events_list, published_eventIDs
 
 
 def browse_events(bot, update):
@@ -362,13 +362,15 @@ def browse_events(bot, update):
     
     # CHECK WITH DATABASE HERE 
     # IF EVENT IS PUBLISHED AND APPROVED, IT WILL BE LISTED HERE
-    published_events_list, published_eventIDs = getPublishedEvents()
+
+    # published_events_list, published_eventIDs = getPublishedEvents()
+    published_events_list = DB().generate_all_pending_events()
 
     BROWSE_EVENTS_MESSAGE = ''
     for i in range(len(published_events_list)):
-        BROWSE_EVENTS_MESSAGE += "\n\n<b>EVENT ID: " + str(published_eventIDs[i]) + "</b>"
-        BROWSE_EVENTS_MESSAGE += "\n\n" + str(published_events_list[i]) 
-        BROWSE_EVENTS_MESSAGE += "\n\n" +"/registerForEvent" + published_eventIDs[i] 
+        BROWSE_EVENTS_MESSAGE += "\n\n<b>EVENT ID: " + str(published_events_list[i][0]) + "</b>"
+        BROWSE_EVENTS_MESSAGE += "\n\n" + str(published_events_list[i][1]) 
+        BROWSE_EVENTS_MESSAGE += "\n\n" +"/registerForEvent" + str(published_events_list[i][0])
     
     replytext = einfo + "<b>Sup! List of cool events going on recently</b>:"
     replytext += "\n\n" + BROWSE_EVENTS_MESSAGE
@@ -635,10 +637,10 @@ def main():
 
     dispatcher.add_handler(CallbackQueryHandler(callback = admin_panel, pattern = '^(return_admin_panel)$'))
 
-    published_events_list, published_eventIDs = getPublishedEvents()
+    published_events_list = DB().generate_all_approved_events()
     # create unique command for each registration of events:
-    for i in range(len(published_eventIDs)):
-        registercommandtext = 'registerForEvent' + str(published_eventIDs[i])
+    for i in range(len(published_events_list)):
+        registercommandtext = 'registerForEvent' + str(published_events_list[i][0])
         dispatcher.add_handler(CommandHandler(command = registercommandtext, callback = confirm_event_registration))
 
     updater.start_polling()

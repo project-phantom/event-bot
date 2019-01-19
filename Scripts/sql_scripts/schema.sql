@@ -1,6 +1,6 @@
-drop table if exists users;
-drop table if exists events;
-drop table if exists attendance;
+-- drop table if exists users;
+-- drop table if exists events;
+-- drop table if exists attendance;
 
 CREATE TABLE if not exists users (
   user_id integer primary key AUTOINCREMENT,
@@ -18,14 +18,12 @@ CREATE TABLE if not exists events(
   description varchar(255),
   visible_status int not null,
   total_attendee integer
-  -- qr_image text
-  -- organizer_id integer
 );
 
 CREATE TABLE if not exists user_booking(
   id integer primary key AUTOINCREMENT,
   event_id integer not null,
-  user_id integer not null,
+  user_id integer not null
 
   -- venue_name varchar(100),
   -- date_time datetime,

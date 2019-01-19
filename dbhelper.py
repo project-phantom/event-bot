@@ -1,7 +1,7 @@
 import sqlite3
 from uuid import uuid4
 import random
-
+from datetime import datetime
 
 class DB:
 
@@ -52,7 +52,7 @@ class DB:
 
 	def user_login(self, token):
 		## check user token is valid of not
-		scripts = "select * from users where token = (?)"
+		scripts = "select token from users where token = (?)"
 		token = self.execute_scripts(scripts, token)
 		if token is not None:
 			return True 
@@ -60,17 +60,17 @@ class DB:
 		print("Wrong token!")
 		return False
 
-	def create_event(self, organizer_id, event_name, venue_name,date_time, description, visible_status,total_attendee):
+	def create_event(self, organizer_id, event_name, venue_name,date_time, description):
 		## 10 for pending; 1 for approve; 0 for reject;
 		event_id = random.randint(1000, 9999)
 		venue_id = random.randint(1000, 9999)
-		scripts = "insert into events (event_id, event_name, venue_name, date_time,  description, visible_status,total_attendee ) values (?,?, ?,?,?,?,?,10,0)"
-		args = (event_id, organizer_id, event_name, venue_id,  venue_name, datetime.now().strftime('%Y %b-%d %H:%m:%S'), description)
+		scripts = "insert into events (event_id, organizer_id, event_name, venue_id, venue_name, date_time,  description, visible_status,total_attendee ) values (?,?, ?,?,?,?,?,1,0)"
+		args = (event_id,  organizer_id, event_name, venue_id,  venue_name, datetime.now().strftime('%Y %b-%d %H:%m:%S'), description)
 		self.conn.execute(scripts, args)
 		self.conn.commit()
 
-		## return event_id, user_id
-		return (args[0], args[1])
+		## return event_id, event_name
+		return (args[0], args[2])
 
 	def generate_all_pending_events(self):
 		stmt = 'select event_id, event_name from events where visible_status = 10'
@@ -91,7 +91,7 @@ class DB:
 			self.conn.execute(stmt, args)
 			self.conn.commit()
 
-	def manage_events(self, user_id, event_id):
+	def manage_events(self, user_id):
 		## manage created events by this user_id
 		stmt = 'select event_id, event_name from events a join user_booking b on a.event_id = b.event_id where user_id = (?)'
 		args = (user_id,)
@@ -120,4 +120,10 @@ class DB:
 el = DB()
 # el.setup()
 # el.add_user('crazyethan')
-# el.execute_scripts('SELECT * FROM users where name = (?)', 'zzz686970')
+# # el.execute_scripts('SELECT * FROM users where name = (?)', 'zzz686970')
+# el.create_event('ethan', 'top secret.', 'floor 1','20180101110102', 'Beijing to roll out unlimited electronic subway tickets')
+# el.create_event('cpf', 'teaching assistant.', 'floor 2','20180101110102', 'The commission added however that no refunds can be issued once the tickets are activated online.')
+
+# el.create_event('yuqing', 'hydrogen bomb', 'floor 3','20180101110102', 'Luxury pet hotels thriving during Spring Festival')
+
+
