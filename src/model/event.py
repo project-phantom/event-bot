@@ -1,4 +1,6 @@
 from booking import Booking
+from dbhelper import DB
+from user import User
 
 class Event:
     def __init__(self, id, organizerID, name, description, visibility, booking, attendee):
@@ -13,7 +15,7 @@ class Event:
 
     @classmethod
     def createEvent(cls, organizerID, name, description):
-        id = ""
+        id = DB().create_event(User.currentUser.token, name, "", "", description)
         return cls(id, organizerID, name, description, 0, None, [])
     
     @staticmethod
