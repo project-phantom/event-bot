@@ -81,9 +81,22 @@ def start(bot, update):
     return AFTER_START
 
 
+def cancel(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    logger.info("User {} cancelled the conversation.".format(user.username if user.username else user.first_name))
+    
+    # deletes message sent previously by bot
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+    
+    bot.send_message(text = "Bye! Press /start if you wish to restart the whole process!",
+                     chat_id=chatid,
+                     parse_mode=ParseMode.HTML)
+    return ConversationHandler.END
+
+
 def login(bot, update):
     query = update.callback_query
-    user = query.from_user
     chatid = query.message.chat.id
     messageid = query.message.message_id
     userinput = html.escape(query.data)
@@ -104,7 +117,6 @@ def login(bot, update):
 
 def register(bot, update):
     query = update.callback_query
-    user = query.from_user
     chatid = query.message.chat.id
     messageid = query.message.message_id
     userinput = html.escape(query.data)
@@ -214,7 +226,6 @@ def error(bot, update, error):
 def main():
     updater = Updater(TELEGRAM_TOKEN)
     dispatcher=updater.dispatcher
-    job_queue = updater.job_queue  
     dispatcher.add_error_handler(error)
 
     conv_handler = ConversationHandler(
@@ -227,10 +238,10 @@ def main():
             LOGIN: [CallbackQueryHandler(callback = dashboard, pattern = 'dashboard'),
                     CallbackQueryHandler(callback = start, pattern = 'back')],
 
-            FIRST_NAME: [MessageHandler(filters.text, lastname),
+            FIRST_NAME: [MessageHandler(Filters.text, lastname),
                         CallbackQueryHandler(callback = start, pattern = 'back')],
 
-            LAST_NAME: [MessageHandler(filters.text, showtoken),
+            LAST_NAME: [MessageHandler(Filters.text, showtoken),
                         CallbackQueryHandler(callback = register, pattern = 'back')],
 
             NEWLOGIN: [CallbackQueryHandler(callback = dashboard, pattern = 'dashboard'),
