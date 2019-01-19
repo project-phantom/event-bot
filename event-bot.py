@@ -15,9 +15,13 @@ from dbhelper import DB
 from src.model.user import User
 
 # importing calendar module
+<<<<<<< HEAD
 # import calendar_telegram.telegramcalendar
 
 from calendar_telegram import telegramcalendar
+=======
+import calendar_telegram.telegramcalendar
+>>>>>>> d3f746d9c1b4c116dcdc264b6b452cbe76de9cd5
 
 
 #try:
