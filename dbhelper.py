@@ -79,7 +79,7 @@ class DB:
 		return cursor.fetchall()
 
 	def register_for_event(self, event_id, user_id, action):
-		if action == 'register'
+		if action == 'register':
 			stmt = 'insert into user_booking (event_id, user_id) values (?, ?)'
 			args = (event_id, user_id)
 			self.conn.execute(stmt, args)
