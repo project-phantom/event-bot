@@ -11,7 +11,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Conve
 from emoji import emojize
 import html
 
-import 'src\model\user.py'
+#import 'src\model\user.py'
 
 # Set up logging
 logging.basicConfig(
