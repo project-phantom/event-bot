@@ -503,7 +503,7 @@ def main():
 
                 AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
 
-                RETURN_ADMIN_PANEL: [CallbackQueryHandler(callback = admin_panel, pattern = '^(return_admin_panel)$')],]
+                RETURN_ADMIN_PANEL: [CallbackQueryHandler(callback = admin_panel, pattern = '^(return_admin_panel)$')],
 
             },
 
