@@ -233,26 +233,26 @@ def main():
             entry_points = [CommandHandler('start', start)],
 
             states = {
-                AFTER_START: [CallbackQueryHandler(callback = login, pattern = 'login'),
-                            CallbackQueryHandler(callback = register, pattern = 'register')],
+                AFTER_START: [CallbackQueryHandler(callback = login, pattern = '^(login)$'),
+                            CallbackQueryHandler(callback = register, pattern = '^(register)$')],
 
-                LOGIN: [CallbackQueryHandler(callback = dashboard, pattern = 'dashboard'),
-                        CallbackQueryHandler(callback = start, pattern = 'back')],
+                LOGIN: [CallbackQueryHandler(callback = dashboard, pattern = '^(dashboard)$'),
+                        CallbackQueryHandler(callback = start, pattern = '^(back)$')],
 
                 FIRST_NAME: [MessageHandler(Filters.text, lastname),
-                            CallbackQueryHandler(callback = start, pattern = 'back')],
+                            CallbackQueryHandler(callback = start, pattern = '^(back)$')],
 
                 LAST_NAME: [MessageHandler(Filters.text, showtoken),
-                            CallbackQueryHandler(callback = register, pattern = 'back')],
+                            CallbackQueryHandler(callback = register, pattern = '^(back)$')],
 
-                NEWLOGIN: [CallbackQueryHandler(callback = dashboard, pattern = 'dashboard'),
-                            CallbackQueryHandler(callback = showtoken, pattern = 'back')], 
+                NEWLOGIN: [CallbackQueryHandler(callback = dashboard, pattern = '^(dashboard)$'),
+                            CallbackQueryHandler(callback = showtoken, pattern = '^(back)$')], 
 
-                AFTER_DASHBOARD: [CallbackQueryHandler(callback = dashboard, pattern = 'attendance'),
-                                CallbackQueryHandler(callback = dashboard, pattern = 'browse_events'),
-                                CallbackQueryHandler(callback = dashboard, pattern = 'manage_events'),
-                                CallbackQueryHandler(callback = dashboard, pattern = 'admin_panel'),
-                                CallbackQueryHandler(callback = dashboard, pattern = 'log_out')]},
+                AFTER_DASHBOARD: [CallbackQueryHandler(callback = dashboard, pattern = '^(attendance)$'),
+                                CallbackQueryHandler(callback = dashboard, pattern = '^(browse_events)$'),
+                                CallbackQueryHandler(callback = dashboard, pattern = '^(manage_events)$'),
+                                CallbackQueryHandler(callback = dashboard, pattern = '^(admin_panel)$'),
+                                CallbackQueryHandler(callback = dashboard, pattern = '^(log_out)$')]},
             fallbacks = [CommandHandler('cancel', cancel)],
             allow_reentry = True
         )
@@ -262,4 +262,5 @@ def main():
     updater.idle()
 
 if __name__ == '__main__':
+    print('main')
     main()
