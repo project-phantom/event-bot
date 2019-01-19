@@ -228,10 +228,10 @@ def main():
             LOGIN: [CallbackQueryHandler(callback = dashboard, pattern = 'dashboard'),
                     CallbackQueryHandler(callback = start, pattern = 'back')],
 
-            FIRST_NAME: [MessageHandler(filters.text, lastname)
+            FIRST_NAME: [MessageHandler(filters.text, lastname),
                         CallbackQueryHandler(callback = start, pattern = 'back')],
 
-            LAST_NAME: [MessageHandler(filters.text, showtoken)
+            LAST_NAME: [MessageHandler(filters.text, showtoken),
                         CallbackQueryHandler(callback = register, pattern = 'back')],
 
             NEWLOGIN: [CallbackQueryHandler(callback = dashboard, pattern = 'dashboard'),
