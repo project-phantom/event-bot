@@ -474,7 +474,7 @@ def start_edit_event(bot, update):
     userinput = html.escape(query.data)
     logger.info(userinput)
 
-    eventID = userinput
+    eventID = str(userinput)
 
     # stores current event ID and carry it for future edit references 
     INFO_STORE[user.id]['Current_Event_ID'] = eventID
