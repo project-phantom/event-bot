@@ -82,6 +82,7 @@ def start(bot, update):
     return AFTER_START
 
 
+# placeholder cancel 
 def cancel(bot, update):
     user = update.message.from_user
     chatid = update.message.chat.id
@@ -161,6 +162,8 @@ def lastname(bot, update):
     
     return LAST_NAME
 
+
+# for new users: show token for future logins 
 def showtoken(bot, update):
     user = update.message.from_user
     chatid = update.message.chat.id
@@ -192,6 +195,11 @@ def showtoken(bot, update):
 
     return NEWLOGIN
 
+
+"""
+0. Main Dashboard 
+
+"""
 
 def dashboard(bot, update):
     button_list = [InlineKeyboardButton(text='Mark Attendance', callback_data = 'attendance'),
@@ -237,6 +245,14 @@ def dashboard(bot, update):
                             parse_mode=ParseMode.HTML)
 
     return AFTER_DASHBOARD
+
+
+"""
+1. Marking of attendance function
+- Scan qr code
+- Decode qr code and mark user attendance on database 
+
+"""
 
 def mark_attendance(bot, update):
     query = update.callback_query
@@ -293,6 +309,13 @@ def check_QR_code(bot, update):
         return ConversationHandler.END
 
 
+"""
+2. user browsing of events 
+- view list of published events 
+- sign up for published events 
+
+"""  
+
 def browse_events(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
@@ -303,8 +326,13 @@ def browse_events(bot, update):
     button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
+    # CHECK WITH DATABASE HERE 
+    # IF EVENT IS PUBLISHED AND APPROVED, IT WILL BE LISTED HERE
+    published_events = "PAKORN YOUR JOB"
+
     EVENTLIST = "INSERT EVENT HERE"
 
+    
     replytext = "<b>Sup! List of cool events going on recently</b>:"
     replytext += "\n\n" + EVENTLIST
         
@@ -316,6 +344,14 @@ def browse_events(bot, update):
     return AFTER_BROWSE_EVENTS
 
 
+
+"""
+3. managing events
+- creating events
+- editing events
+- confirming events
+
+"""  
 def manage_events(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
@@ -338,6 +374,14 @@ def manage_events(bot, update):
                         parse_mode=ParseMode.HTML)
     return AFTER_MANAGE_EVENTS
 
+
+
+
+
+"""
+4. admin panel functions
+"""
+
 # function called by admin_panel to get event and venues that are all pending 
 def getPendingEventsVenues():
     list_pending_events = ['EVENT 1', 'EVENT 2', 'EVENT 3']
@@ -345,6 +389,7 @@ def getPendingEventsVenues():
     list_eventIDs = ['1234', '1040', '0534']
     list_venueIDs = ['1204', '1200', '0134']
     return list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs
+
 
 def admin_panel(bot, update):
     query = update.callback_query
