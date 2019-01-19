@@ -47,9 +47,7 @@ def start(bot, update):
     button_list = [InlineKeyboardButton(text='Register', callback_data = 'register'),
                     InlineKeyboardButton(text='Login', callback_data = 'login')]
     menu = build_menu(button_list, n_cols = 2, header_buttons = None, footer_buttons = None)
-    
-    replytext = "<b>Hello {}!</b>\n\n".format(user.username if user.username else user.first_name)
-    replytext += "Welcome to NUS Events Management System. If you are new, please register a new user token."
+    replytext = "Welcome to the NUS Events Management System. If you are new, please register a new user token."
 
     try:
         user = update.message.from_user
@@ -81,7 +79,6 @@ def start(bot, update):
                         message_id = messageid,
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
-    
     return AFTER_START
 
 
