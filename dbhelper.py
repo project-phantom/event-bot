@@ -8,12 +8,14 @@ class DB:
 		self.conn = sqlite3.connect(dbname)
 
 	def setup(self):
-		tblstmt = "CREATE TABLE if not exists users (user_id integer primary key AUTOINCREMENT, name varchar (255) not null, token varchar(100));"
-		eventstmt = "CREATE TABLE if not exists events (event_id integer primary key AUTOINCREMENT, title varchar(255) not null, venue varchar(255), date_slot datetime not null, time_slot time not null, organiser varchar (255) not null, description varchar(255), status int not null, cur_attendance integer);" 
-		attendstmt = "CREATE TABLE if not exists attendance(user_id varchar(255) not null, event_id varchar(255) not null, user_status integer);"
-		self.conn.execute(tblstmt)
-		self.conn.execute(eventstmt)
-		self.conn.execute(attendstmt)
+		file = open('Scripts/sql_scripts/schema.sql', 'r').read()
+		# tblstmt = "CREATE TABLE if not exists users (user_id integer primary key AUTOINCREMENT, name varchar (255) not null, token varchar(100));"
+		# eventstmt = "CREATE TABLE if not exists events (event_id integer primary key AUTOINCREMENT, title varchar(255) not null, venue varchar(255), date_slot datetime not null, time_slot time not null, organiser varchar (255) not null, description varchar(255), status int not null, cur_attendance integer);" 
+		# attendstmt = "CREATE TABLE if not exists attendance(user_id varchar(255) not null, event_id varchar(255) not null, user_status integer);"
+		cur = self.conn.cursor()
+		cur.executescript(file)
+		# self.conn.execute(eventstmt)
+		# self.conn.execute(attendstmt)
 		self.conn.commit()
 
 	def execute_scripts(self, scripts, parameter):
