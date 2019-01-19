@@ -168,13 +168,14 @@ def register(bot, update):
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
     replytext = "What is your <b>First Name</b>?"
-        
+
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
                         message_id = messageid,
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
     
+    # appends message sent by bot itself - the very first message: start message
     return FIRST_NAME
 
 # def lastname(bot, update):
@@ -212,23 +213,24 @@ def showtoken(bot, update):
     logger.info(userinput)
     print(userinput)
     INFO_STORE[user.id]['first_name'] = userinput
-
-    # if User.register(userinput):
-    #     ## go back to register again
-    # else:
-
-    button_list = [InlineKeyboardButton(text='Login Now', callback_data = 'dashboard'),
-                    InlineKeyboardButton(text='Back', callback_data = 'back')]
-    menu = build_menu(button_list, n_cols = 2, header_buttons = None, footer_buttons = None)
-    
+ 
     replytext = "Okay! Your information is registered. The following is your user token, please keep it safely! Write it down somewhere :)"
     replytext += "\n\nYour unique User Token: "
     USERTOKEN = User.register(INFO_STORE[user.id]["first_name"])
-    replytext += USERTOKEN
     INFO_STORE[user.id]['user_token'] = USERTOKEN
+    if USERTOKEN:
+        replytext += USERTOKEN
+        button_list = [InlineKeyboardButton(text='Login Now', callback_data = 'dashboard'),
+                    InlineKeyboardButton(text='Back', callback_data = 'back')]
+
+    else: 
+        button_list = [InlineKeyboardButton(text='Register AGAIN', callback_data = 'register')]
+        replytext = "<b>Same username already existed!</b>"
+
+    
+    menu = build_menu(button_list, n_cols = 2, header_buttons = None, footer_buttons = None)
 
     # deletes message sent previously by bot
-    print(INFO_STORE[user.id])
     bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
 
     msgsent = bot.send_message(text = replytext,
@@ -588,7 +590,7 @@ def main():
                                 CallbackQueryHandler(callback = dashboard, pattern = '^(login_success)$')],
 
                 FIRST_NAME: [MessageHandler(Filters.text, showtoken),
-                            CallbackQueryHandler(callback = register, pattern = '^(back)$')],
+                            CallbackQueryHandler(callback = register, pattern = '^(register_back)$')],
 
                 # LAST_NAME: [MessageHandler(Filters.text, showtoken),
                 #             CallbackQueryHandler(callback = register, pattern = '^(back)$')],
