@@ -217,7 +217,8 @@ def main():
     dispatcher=updater.dispatcher
     job_queue = updater.job_queue  
     dispatcher.add_error_handler(error)
-
+    dispatcher.add_handler(CommandHandler('start', start))
+    
     conv_handler = ConversationHandler(
         entry_points = [CommandHandler('start', start)],
 
