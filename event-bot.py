@@ -381,7 +381,7 @@ def main():
                                 CallbackQueryHandler(callback = browse_events, pattern = '^(browse_events)$'),
                                 CallbackQueryHandler(callback = manage_events, pattern = '^(manage_events)$'),
                                 CallbackQueryHandler(callback = admin_panel, pattern = '^(admin_panel)$'),
-                                CallbackQueryHandler(callback = log_out, pattern = '^(log_out)$')]
+                                CallbackQueryHandler(callback = log_out, pattern = '^(log_out)$')],
                 
                 AFTER_MARK_ATTENDANCE: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
 
