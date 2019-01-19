@@ -15,8 +15,7 @@ class Event:
 
     @classmethod
     def createEvent(cls, organizerID, name, description):
-        id = DB().create_event(User.currentUser.token, name, "", "", description)
-        return cls(id, organizerID, name, description, 0, None, [])
+        return DB().create_event(User.currentUser.token, name, "", "", description)
     
     @staticmethod
     def setName(id, name):
