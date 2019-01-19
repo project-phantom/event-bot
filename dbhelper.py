@@ -85,10 +85,12 @@ class DB:
 		self.conn.commit()
 		return cursor.fetchall()
 
-	def register_for_event(self, event_id, user_id, action):
+	def register_for_event(self, userinput, user_token):
+		event_id = userinput[-4:]
+		action = userinput[:8]
 		if action == 'register':
-			stmt = 'insert into user_booking (event_id, user_id) values (?, ?)'
-			args = (event_id, user_id)
+			stmt = "insert into user_booking (event_id, user_id) values(?), (select user_id from users where token = (?))) "
+			args = (event_id, user_token)
 			self.conn.execute(stmt, args)
 			self.conn.commit()
 

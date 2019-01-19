@@ -13,6 +13,7 @@ import html
 from dbhelper import DB
 
 from src.model.user import User
+from src.model.event import Event
 
 # importing calendar module
 from calendar_telegram import telegramcalendar
@@ -402,6 +403,8 @@ def confirm_event_registration(bot, update):
     chatid = update.message.chat.id
     userinput = update.message.text.strip()[1:]
     logger.info(userinput)
+    ## registerForEvent and user_token
+    DB().register_for_event(userinput, INFO_STORE['user_token'])
 
     replytext = "WOOTS! You have successfully registered for this event! Press /start if you wish to return to the main menu :)"
 
@@ -761,12 +764,16 @@ def start_create_event(bot, update):
                         parse_mode=ParseMode.HTML)
     return CREATE_NEW_EVENT
 
+eventName = ""
 
 def create_event_name(bot, update):
     user = update.message.from_user
     chatid = update.message.chat.id
     userinput = update.message.text.strip()[1:]
     logger.info(userinput)
+
+    global eventName
+    eventName = userinput
 
     replytext = "<b>Please include your Event Description:</b>"
 
@@ -789,9 +796,13 @@ def final_create_event(bot, update):
     userinput = update.message.text.strip()[1:]
     logger.info(userinput)
 
+    global eventName
+
+    token = Event.createEvent(chatid, eventName, userinput)[0]
+
     replytext = "<b>Great! Your basic Event details are created.</b>"
     replytext += "\n\n<b>The following is your generated Event ID: </b>"
-    replytext += "INSERT TOKEN ID" # GENERATE TOKEN 
+    replytext += str(token)
 
     button_list = [InlineKeyboardButton(text='Book Venue and Time', callback_data = 'back_to_manage_events')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
