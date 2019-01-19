@@ -4,6 +4,6 @@ class User:
         self.token = token
     
     @staticmethod
-    def register(name):
+    def register(name, userid):
         # do a server request
         return User(name, "T1231")
