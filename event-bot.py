@@ -390,11 +390,11 @@ def admin_process_event(bot, update):
     replytext = "Okay! Your previous decision has been recorded. Press 'OK' to return to the Admin Panel."
 
     if userinput[:-5] == 'approveEvent':
-
+        logger.info("Admin has approved event")
         # PROCESS APPROVE WITH DATABASE HERE
 
     elif userinput[:-5] == 'rejectEvent':
-
+        logger.info("Admin has rejected event")
         # PROCESS REJECT WITH DATABASE HERE
  
     # deletes message sent previously by bot (this is the previous admin panel message)
@@ -422,11 +422,11 @@ def admin_process_venue(bot, update):
     replytext = "Okay! Your previous decision has been recorded. Press 'OK' to return to the Admin Panel."
 
     if userinput[:-5] == 'approveVenue':
-
+        logger.info("Admin has approved venue")
         # PROCESS APPROVE WITH DATABASE HERE
 
     elif userinput[:-5] == 'rejectVenue':
-
+        logger.info("Admin has approved venue")
         # PROCESS REJECT WITH DATABASE HERE
  
     # deletes message sent previously by bot (this is the previous admin panel message)
