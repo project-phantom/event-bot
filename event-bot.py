@@ -15,7 +15,7 @@ from dbhelper import DB
 from src.model.user import User
 
 # importing calendar module
-# from calendar_telegram-master import telegramcalendar
+import calendar_telegram.telegramcalendar
 
 
 #try:
@@ -550,6 +550,9 @@ def rename_event(bot, update):
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
     return RENAME_EVENT
+
+def cancel_date():
+    pass
 
 def process_rename_event(bot, update):
     user = update.message.from_user
