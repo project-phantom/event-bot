@@ -91,10 +91,10 @@ class DB:
 			self.conn.execute(stmt, args)
 			self.conn.commit()
 
-	def manage_events(self, user_id):
+	def generate_events_of_user(self, token):
 		## manage created events by this user_id
-		stmt = 'select event_id, event_name from events a join user_booking b on a.event_id = b.event_id where user_id = (?)'
-		args = (user_id,)
+		stmt = 'select a.event_id, a.event_name, a.visible_status from events a join users c on a.organizer_id = c.user_id where c.token = (?)'
+		args = (token,)
 		cursor = self.conn.execute(stmt, args)
 		self.conn.commit()
 		return cursor.fetchall()

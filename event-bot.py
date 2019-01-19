@@ -134,7 +134,8 @@ def login_verify(bot, update):
     USERTOKEN = userinput
     
     if User.login(USERTOKEN): #TEST IF USERTOKEN IS IN DATABASE HERE
-        INFO_STORE[user.id]['user_token'] = USERTOKEN # only record usertoken if success login match
+        # INFO_STORE[user.id]['user_token'] = USERTOKEN # only record usertoken if success login match
+        INFO_STORE['user_token'] = USERTOKEN   ## only record usertoken if success login match
         button_list = [InlineKeyboardButton(text='Go to Dashboard', callback_data = 'login_success')]
         replytext = "<b>Great! You have successfully logged in.</b>"
 
@@ -427,9 +428,16 @@ def manage_events(bot, update):
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
     EVENTMANAGEMENTLIST = "LIST OF EVENTS MANAGED HERE"
+    # print(INFO_STORE['user_token'])
+    print(INFO_STORE['user_token'])
+    list_events = DB().generate_events_of_user(INFO_STORE['user_token'])
 
     replytext = "<b>Here are the list of events you have started:</b>"
     replytext += "\n\n" + EVENTMANAGEMENTLIST
+    for i in range(len(list_events)):
+        replytext += "\n\n<b>EVENT ID: " + str(list_events[i][0]) + "</b>"
+        replytext += "\n\n" + str(list_events[i][1]) 
+        replytext += "\n\n" +"status:" + str(list_events[i][2])
         
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
