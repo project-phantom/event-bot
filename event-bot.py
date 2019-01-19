@@ -32,7 +32,10 @@ INFO_STORE = {}
 
 #Set up telegram token 
 # TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
-TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
+if TOKEN:
+    TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
+else:
+    TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
 
 # Building menu for every occasion 
 def build_menu(buttons, n_cols, header_buttons, footer_buttons):

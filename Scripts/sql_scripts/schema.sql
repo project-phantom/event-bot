@@ -28,6 +28,8 @@ CREATE TABLE if not exists attendances(
 create table if not exists venues(
   venue_id integer primary key AUTOINCREMENT,
   venue_name varchar(100) not null,
-  time_slot datetime,
-  book_status integer 
+  date_time datetime,
+  book_status integer,
+  event_id integer,
 );
+

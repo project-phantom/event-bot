@@ -24,13 +24,16 @@ class DB:
 		self.conn.commit()
 		return cursor.fetchone()
 
-			# def delete_item(self, item_text, owner):
-	# 	stmt = "DELETE FROM items WHERE description = (?) AND owner = (?)"
-	# 	args = (item_text, owner )
-	# 	self.conn.execute(stmt, args)
-	# 	self.conn.commit()
+		# def delete_item(self, item_text, owner):
+		# 	stmt = "DELETE FROM items WHERE description = (?) AND owner = (?)"
+		# 	args = (item_text, owner )
+		# 	self.conn.execute(stmt, args)
+		# 	self.conn.commit()
 
 	def add_user(self, name):
+		## add a new user into the database
+		## if the user exists, then print some info,
+		## return token for a new user
 		scripts = "select * from users where name = (?)"
 		user = self.execute_scripts(scripts, name)
 
@@ -45,6 +48,16 @@ class DB:
 			self.conn.commit()
 			return args[1]
 
+	def user_login(self, token):
+		## check user token is valid of not
+		scripts = "select * from users where token = (?)"
+		token = self.execute_scripts(scripts, token)
+		if token is not None:
+			return token 
+		## 
+		print("Wrong token!")
+		return 
+
 	def create_event(self, title, date, time, ):
 		pass
 
@@ -54,6 +67,8 @@ class DB:
 		cursor = self.conn.execute(stmt)
 		self.conn.commit()
 		return crusor.fetchall()
+
+	def update_venue(self, venue_id, )
 
 
 
