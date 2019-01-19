@@ -61,8 +61,9 @@ class DB:
 
 
 	def create_event(self, title, date, time, ):
-		
-		      #   self.organizerID = organizerID
+		pass
+
+		#   self.organizerID = organizerID
         # self.name = name
         # self.description = description
         # self.visibility = visibility
