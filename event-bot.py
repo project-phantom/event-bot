@@ -15,7 +15,7 @@ from dbhelper import DB
 from src.model.user import User
 
 # importing calendar module
-import calendar-telegram-master.telegramcalendar
+from calendar-telegram-master import telegramcalendar
 
 
 #try:
