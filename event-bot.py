@@ -337,6 +337,13 @@ def manage_events(bot, update):
                         parse_mode=ParseMode.HTML)
     return AFTER_MANAGE_EVENTS
 
+# function called by admin_panel to get event and venues that are all pending 
+def getPendingEventsVenues():
+    list_pending_events = ['EVENT 1', 'EVENT 2', 'EVENT 3']
+    list_pending_venues = ['VENUE 1', 'VENUE 2', 'VENUE 3']
+    list_eventIDs = ['1234', '1040', '0534']
+    list_venueIDs = ['1204', '1200', '0134']
+    return list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs
 
 def admin_panel(bot, update):
     query = update.callback_query
@@ -348,9 +355,19 @@ def admin_panel(bot, update):
     button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
 
-    ADMIN_MENU_MESSAGE = "LIST OF EVENTS TO BE APPROVED / REJECTED HERE; WITH URL LINKS."
+    # GET EVENTS AND VENUES REQUESTS CALL FROM FUNCTIONS 
+    list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs = getPendingEventsVenues()
 
-    replytext = "<b>Here are a list of pending events for you to approve:</b>"
+    ADMIN_MENU_MESSAGE = ''
+    for i in range(len(list_pending_events)):
+        ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_events[i])
+        ADMIN_MENU_MESSAGE += "/approveEvent" + list_eventIDs[i] + " | " +  "/rejectEvent" + list_eventIDs[i] 
+
+    for i in range(len(list_pending_venues)):
+        ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_venues[i])
+        ADMIN_MENU_MESSAGE += "/approveVenue" + list_venueIDs[i] + " | " +  "/rejectVenue" + list_venueIDs[i] 
+    
+    replytext = "<b>Here are a list of pending events publication and venue booking requests for you to approve:</b>"
     replytext += "\n\n" + ADMIN_MENU_MESSAGE
     
     bot.editMessageText(text = replytext,
@@ -359,6 +376,71 @@ def admin_panel(bot, update):
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
     return AFTER_ADMIN_PANEL
+
+
+# update database, delete previous admin panel msg, ask user to press ok and trigger returning to new admin panel
+def admin_process_event(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message.text.strip()[1:]
+    logger.info(userinput)
+
+    button_list = [InlineKeyboardButton(text='OK', callback_data = 'return_admin_panel')]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+    replytext = "Okay! Your previous decision has been recorded. Press 'OK' to return to the Admin Panel."
+
+    if userinput[:-5] == 'approveEvent':
+
+        # PROCESS APPROVE WITH DATABASE HERE
+
+    elif userinput[:-5] == 'rejectEvent':
+
+        # PROCESS REJECT WITH DATABASE HERE
+ 
+    # deletes message sent previously by bot (this is the previous admin panel message)
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    msgsent = bot.send_message(text = replytext,
+                                chat_id = chatid,
+                                reply_markup = InlineKeyboardMarkup(menu),
+                                parse_mode=ParseMode.HTML)
+    
+    #appends message sent by bot itself - the very first message: start message
+    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+    
+    return RETURN_ADMIN_PANEL
+
+
+def admin_process_venue(bot, update):
+    user = update.message.from_user
+    chatid = update.message.chat.id
+    userinput = update.message.text.strip()[1:]
+    logger.info(userinput)
+
+    button_list = [InlineKeyboardButton(text='OK', callback_data = 'return_admin_panel')]
+    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+    replytext = "Okay! Your previous decision has been recorded. Press 'OK' to return to the Admin Panel."
+
+    if userinput[:-5] == 'approveVenue':
+
+        # PROCESS APPROVE WITH DATABASE HERE
+
+    elif userinput[:-5] == 'rejectVenue':
+
+        # PROCESS REJECT WITH DATABASE HERE
+ 
+    # deletes message sent previously by bot (this is the previous admin panel message)
+    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+
+    msgsent = bot.send_message(text = replytext,
+                                chat_id = chatid,
+                                reply_markup = InlineKeyboardMarkup(menu),
+                                parse_mode=ParseMode.HTML)
+    
+    #appends message sent by bot itself - the very first message: start message
+    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+
+    return RETURN_ADMIN_PANEL
 
 
 def log_out(bot, update):
@@ -421,12 +503,27 @@ def main():
 
                 AFTER_ADMIN_PANEL: [CallbackQueryHandler(callback = dashboard, pattern = '^(back)$')],
 
+                RETURN_ADMIN_PANEL: [CallbackQueryHandler(callback = admin_panel, pattern = '^(return_admin_panel)$')],]
+
             },
 
             fallbacks = [CommandHandler('cancel', cancel)],
             allow_reentry = True
         )
     dispatcher.add_handler(conv_handler)
+
+    list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs = getPendingEventsVenues()
+    # create unique command for each approval and rejection of the events and venue bookings:
+    for i in range(len(list_eventIDs)):
+        approvecommandtext = 'approveEvent' + str(list_eventIDs[i])
+        dispatcher.add_handler(CommandHandler(command = approvecommandtext, callback = admin_process_event)
+        rejectcommandtext = 'rejectEvent' + str(list_eventIDs[i])
+        dispatcher.add_handler(CommandHandler(command = rejectcommandtext, callback = admin_process_event)
+    for i in range(len(list_venueIDs)):
+        approvecommandtext = 'approveVenue' + str(list_venueIDs[i])
+        dispatcher.add_handler(CommandHandler(command = approvecommandtext, callback = admin_process_venue)
+        rejectcommandtext = 'rejectVenue' + str(list_venueIDs[i])
+        dispatcher.add_handler(CommandHandler(command = rejectcommandtext, callback = admin_process_venue)
 
     updater.start_polling()
     updater.idle()
