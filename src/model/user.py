@@ -18,7 +18,6 @@ class User:
         if (not DB().user_login(token)):
             return False
 
-
         User.currentUser = User("test", token)
         return DB().user_login(token)
 

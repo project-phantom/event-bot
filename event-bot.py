@@ -22,6 +22,12 @@ from calendar-telegram-master import telegramcalendar
 #    from config import TOKEN
 #except:
 #    pass
+#Set up telegram token 
+if 'HACKNROLLTOKEN' in os.environ:
+    TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
+else:
+   from config import TOKEN
+   TELEGRAM_TOKEN = TOKEN
 
 #import 'src\model\user.py'
 
@@ -36,12 +42,6 @@ logger = logging.getLogger(__name__)
 #temporary store of info 
 INFO_STORE = {}
 
-#Set up telegram token 
-TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
-#if TOKEN:
-# TELEGRAM_TOKEN = TOKEN ##os.environ['HACKNROLLTOKEN'] 
-#else:
-#    TELEGRAM_TOKEN = os.environ['HACKNROLLTOKEN'] 
 
 # Building menu for every occasion 
 def build_menu(buttons, n_cols, header_buttons, footer_buttons):
@@ -58,7 +58,7 @@ einfo = emojize(":information_source: ", use_aliases=True)
 ecross = emojize(":cross: ", use_aliases=True)
 
 # initialize states
-(AFTER_START, LOGIN, VERIFY_LOGIN, FIRST_NAME, LAST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_ADMIN_PANEL, RETURN_ADMIN_PANEL) = range(12)
+(AFTER_START, LOGIN, VERIFY_LOGIN, FIRST_NAME, NEWLOGIN, AFTER_DASHBOARD, AFTER_MARK_ATTENDANCE, AFTER_BROWSE_EVENTS, AFTER_MANAGE_EVENTS, AFTER_START_EDIT_EVENT, CREATE_NEW_EVENT, CREATE_EVENT_DESC, FINAL_CREATE_EVENT, RENAME_EVENT, RENAME_EVENT_CONFIRM, EDIT_EVENT_DESCRIPTION, EDIT_EVENT_DESCRIPTION_CONFIRM, AFTER_ADMIN_PANEL) = range(18)
 
 def start(bot, update):
     button_list = [InlineKeyboardButton(text='Register', callback_data = 'register'),
@@ -143,12 +143,13 @@ def login_verify(bot, update):
     USERTOKEN = userinput
     
     if User.login(USERTOKEN): #TEST IF USERTOKEN IS IN DATABASE HERE
-        INFO_STORE[user.id]['user_token'] = USERTOKEN # only record usertoken if success login match
+        # INFO_STORE[user.id]['user_token'] = USERTOKEN # only record usertoken if success login match
+        INFO_STORE['user_token'] = USERTOKEN   ## only record usertoken if success login match
         button_list = [InlineKeyboardButton(text='Go to Dashboard', callback_data = 'login_success')]
         replytext = "<b>Great! You have successfully logged in.</b>"
 
     else: 
-        button_list = [InlineKeyboardButton(text='FILL UP AGAIN', callback_data = 'login_failure')]
+        button_list = [InlineKeyboardButton(text='FILL UP AGAIN', callback_data = 'login_fail')]
         replytext = "<b>ERROR. Your User Token is not found. Please try again or register first.</b>"
 
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
@@ -173,44 +174,45 @@ def register(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
-    print(userinput)
     button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
     replytext = "What is your <b>First Name</b>?"
-        
+
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
                         message_id = messageid,
                         reply_markup = InlineKeyboardMarkup(menu),
                         parse_mode=ParseMode.HTML)
+    
+    # appends message sent by bot itself - the very first message: start message
     return FIRST_NAME
 
-def lastname(bot, update):
-    user = update.message.from_user
-    chatid = update.message.chat.id
-    userinput = html.escape(update.message.text.strip())
-    logger.info(userinput)
+# def lastname(bot, update):
+#     user = update.message.from_user
+#     chatid = update.message.chat.id
+#     userinput = html.escape(update.message.text.strip())
+#     logger.info(userinput)
 
-    INFO_STORE[user.id]['first_name'] = userinput
+#     INFO_STORE[user.id]['first_name'] = userinput
 
-    button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
-    menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
+#     button_list = [InlineKeyboardButton(text='Back', callback_data = 'back')]
+#     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
     
-    replytext = "How about your <b>Last Name</b>?"
+#     replytext = "How about your <b>Last Name</b>?"
     
-    # deletes message sent previously by bot
-    bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
+#     # deletes message sent previously by bot
+#     bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
 
-    msgsent = bot.send_message(text = replytext,
-                                chat_id = chatid,
-                                reply_markup = InlineKeyboardMarkup(menu),
-                                parse_mode=ParseMode.HTML)
+#     msgsent = bot.send_message(text = replytext,
+#                                 chat_id = chatid,
+#                                 reply_markup = InlineKeyboardMarkup(menu),
+#                                 parse_mode=ParseMode.HTML)
     
-    #appends message sent by bot itself - the very first message: start message
-    INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
+#     #appends message sent by bot itself - the very first message: start message
+#     INFO_STORE[user.id]["BotMessageID"].append(msgsent['message_id'])
     
-    return LAST_NAME
+#     return LAST_NAME
 
 
 # for new users: show token for future logins 
@@ -220,17 +222,23 @@ def showtoken(bot, update):
     userinput = html.escape(update.message.text.strip())
     logger.info(userinput)
     print(userinput)
-    INFO_STORE[user.id]['last_name'] = userinput
-
-    button_list = [InlineKeyboardButton(text='Login Now', callback_data = 'dashboard'),
-                    InlineKeyboardButton(text='Back', callback_data = 'back')]
-    menu = build_menu(button_list, n_cols = 2, header_buttons = None, footer_buttons = None)
-    
+    INFO_STORE[user.id]['first_name'] = userinput
+ 
     replytext = "Okay! Your information is registered. The following is your user token, please keep it safely! Write it down somewhere :)"
     replytext += "\n\nYour unique User Token: "
-    USERTOKEN = User.register(INFO_STORE[user.id]["first_name"] + " " + INFO_STORE[user.id]["last_name"])
-    replytext += USERTOKEN
+    USERTOKEN = User.register(INFO_STORE[user.id]["first_name"])
     INFO_STORE[user.id]['user_token'] = USERTOKEN
+    if USERTOKEN:
+        replytext += USERTOKEN
+        button_list = [InlineKeyboardButton(text='Login Now', callback_data = 'dashboard'),
+                    InlineKeyboardButton(text='Back', callback_data = 'back')]
+
+    else: 
+        button_list = [InlineKeyboardButton(text='Register AGAIN', callback_data = 'register')]
+        replytext = "<b>Same username already existed!</b>"
+
+    
+    menu = build_menu(button_list, n_cols = 2, header_buttons = None, footer_buttons = None)
 
     # deletes message sent previously by bot
     bot.delete_message(chat_id=chatid, message_id=INFO_STORE[user.id]["BotMessageID"][-1])
@@ -346,10 +354,10 @@ def check_QR_code(bot, update):
 """  
 
 # function called by browse_events to get events that are all approved and published
-def getPublishedEvents():
-    published_events_list = ['EVENT 1', 'EVENT 2', 'EVENT 3']
-    published_eventIDs = ['1234', '1040', '0534']
-    return published_events_list, published_eventIDs
+# def getPublishedEvents():
+#     published_events_list = ['EVENT 1', 'EVENT 2', 'EVENT 3']
+#     published_eventIDs = ['1234', '1040', '0534']
+#     return published_events_list, published_eventIDs
 
 
 def browse_events(bot, update):
@@ -364,13 +372,15 @@ def browse_events(bot, update):
     
     # CHECK WITH DATABASE HERE 
     # IF EVENT IS PUBLISHED AND APPROVED, IT WILL BE LISTED HERE
-    published_events_list, published_eventIDs = getPublishedEvents()
+
+    # published_events_list, published_eventIDs = getPublishedEvents()
+    published_events_list = DB().generate_all_approved_events()
 
     BROWSE_EVENTS_MESSAGE = ''
     for i in range(len(published_events_list)):
-        BROWSE_EVENTS_MESSAGE += "\n\n<b>EVENT ID: " + str(published_eventIDs[i]) + "</b>"
-        BROWSE_EVENTS_MESSAGE += "\n\n" + str(published_events_list[i]) 
-        BROWSE_EVENTS_MESSAGE += "\n\n" +"/registerForEvent" + published_eventIDs[i] 
+        BROWSE_EVENTS_MESSAGE += "\n\n<b>EVENT ID: " + str(published_events_list[i][0]) + "</b>"
+        BROWSE_EVENTS_MESSAGE += "\n\n" + str(published_events_list[i][1]) 
+        BROWSE_EVENTS_MESSAGE += "\n\n" +"/registerForEvent" + str(published_events_list[i][0])
     
     replytext = einfo + "<b>Sup! List of cool events going on recently</b>:"
     replytext += "\n\n" + BROWSE_EVENTS_MESSAGE
@@ -461,12 +471,39 @@ def start_edit_event(bot, update):
     # stores current event ID and carry it for future edit references 
     INFO_STORE[user.id]['Current_Event_ID'] = eventID
 
+    EVENTMANAGEMENTLIST = "LIST OF EVENTS MANAGED HERE"
+    # print(INFO_STORE['user_token'])
+    print(INFO_STORE['user_token'])
+    list_events = DB().generate_events_of_user(INFO_STORE['user_token'])
+
+    replytext = "<b>Here are the list of events you have started:</b>"
+    replytext += "\n\n" + EVENTMANAGEMENTLIST
+    for i in range(len(list_events)):
+        replytext += "\n\n<b>EVENT ID: " + str(list_events[i][0]) + "</b>"
+        replytext += "\n\n" + str(list_events[i][1]) 
+        replytext += "\n\n" +"status:" + str(list_events[i][2])
+
+    """ 
+    CPF'S CODE:
+    """
     # MATCH EVENT ID WITH DATABASE 
     # GET DATABASE EVENT DETAILS:
     event_venue = 'NIL'
     event_timeslots = 'NIL'
     event_status = "NOT APPROVED"
 
+    replytext = einfo + "<b>Showing Information for Event: " + eventID + "</b>"
+    replytext += "EVENT INFORMATION FOR PARTICULAR EVENTID"
+    replytext += "\n- " + "<b>Event Name: </b>" + "INSERT EVENT NAME"
+    replytext += "\n- " + "<b>Description: </b>" + "INSERT EVENT DESCRIPTION"
+    replytext += "\n- " + "<b>Venue Booked: </b>" + event_venue
+    replytext += "\n- " + "<b>Timeslot Booked: </b>" + event_timeslots
+    replytext += "\n- " + "<b>Event Poster: </b>" + "INSERT EVENT CREATOR NAME"
+    replytext += "\n- " + "<b>Current Status: </b>" + event_status
+
+    """
+    END
+    """
     button_list = []
     # add dates row by row 
     for date in selected_dates_list:
@@ -482,15 +519,6 @@ def start_edit_event(bot, update):
     button_list.append(InlineKeyboardButton(text='Book Venue', callback_data = 'book_venue'))
     button_list.append(InlineKeyboardButton(text='Request Publication', callback_data = 'request_publish'))
     button_list.append(InlineKeyboardButton(text='Back', callback_data = 'back'))
-
-    replytext = einfo + "<b>Showing Information for Event: " + eventID + "</b>"
-    replytext += "EVENT INFORMATION FOR PARTICULAR EVENTID"
-    replytext += "\n- " + "<b>Event Name: </b>" + "INSERT EVENT NAME"
-    replytext += "\n- " + "<b>Description: </b>" + "INSERT EVENT DESCRIPTION"
-    replytext += "\n- " + "<b>Venue Booked: </b>" + event_venue
-    replytext += "\n- " + "<b>Timeslot Booked: </b>" + event_timeslots
-    replytext += "\n- " + "<b>Event Poster: </b>" + "INSERT EVENT CREATOR NAME"
-    replytext += "\n- " + "<b>Current Status: </b>" + event_status
 
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
@@ -514,7 +542,7 @@ def rename_event(bot, update):
     button_list = [InlineKeyboardButton(text='Back', callback_data = eventID)]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
         
-    replytext = "<bPlease send me your new Event Name</b>:"
+    replytext = "<b>Please send me your new Event Name</b>:"
         
     bot.editMessageText(text = replytext,
                         chat_id = chatid,
@@ -733,19 +761,22 @@ def admin_panel(bot, update):
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
 
     # GET EVENTS AND VENUES REQUESTS CALL FROM FUNCTIONS 
-    list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs = getPendingEventsVenues()
+
+    # list_pending_events, list_pending_venues, list_eventIDs, list_venueIDs = getPendingEventsVenues()
+
+    list_events = DB().generate_all_pending_events()
 
     ADMIN_MENU_MESSAGE = "\n\n" + einfo + "<b>List of Event Publications to be Approved:</b>"
-    for i in range(len(list_pending_events)):
-        ADMIN_MENU_MESSAGE += "\n\n<b>EVENT ID: " + str(list_eventIDs[i]) + "</b>"
-        ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_events[i]) 
-        ADMIN_MENU_MESSAGE += "\n\n" +"/approveEvent" + list_eventIDs[i] + " | " +  "/rejectEvent" + list_eventIDs[i] 
+    for i in range(len(list_events)):
+        ADMIN_MENU_MESSAGE += "\n\n<b>EVENT ID: " + str(list_events[i][0]) + "</b>"
+        ADMIN_MENU_MESSAGE += "\n\n" + str(list_events[i][1]) 
+        ADMIN_MENU_MESSAGE += "\n\n" +"/approveEvent" + str(list_events[i][0]) + " | " +  "/rejectEvent" + str(list_events[i][0])
 
-    ADMIN_MENU_MESSAGE += "\n\n" + einfo + "<b>List of Venue Bookings to be Approved:</b>"
-    for i in range(len(list_pending_venues)):
-        ADMIN_MENU_MESSAGE += "\n\n<b>VENUE ID: " + str(list_venueIDs[i]) + "</b>"
-        ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_venues[i])
-        ADMIN_MENU_MESSAGE += "\n\n" + "/approveVenue" + list_venueIDs[i] + " | " +  "/rejectVenue" + list_venueIDs[i] 
+    # ADMIN_MENU_MESSAGE += "\n\n" + einfo + "<b>List of Venue Bookings to be Approved:</b>"
+    # for i in range(len(list_pending_venues)):
+    #     ADMIN_MENU_MESSAGE += "\n\n<b>VENUE ID: " + str(list_venueIDs[i]) + "</b>"
+    #     ADMIN_MENU_MESSAGE += "\n\n" + str(list_pending_venues[i])
+    #     ADMIN_MENU_MESSAGE += "\n\n" + "/approveVenue" + list_venueIDs[i] + " | " +  "/rejectVenue" + list_venueIDs[i] 
     
     replytext = "<b>Here is the full list of pending events publication and venue booking requests for you to approve.</b>"
     replytext += ADMIN_MENU_MESSAGE
@@ -828,7 +859,6 @@ def log_out(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
-    print(userinput)
     replytext = "Thank you for using the system. Press /start again if you wish to relogin anytime.\n\nGoodbye!"
         
     bot.editMessageText(text = replytext,
@@ -861,11 +891,11 @@ def main():
                 VERIFY_LOGIN: [CallbackQueryHandler(callback = login, pattern = '^(login_fail)$'),
                                 CallbackQueryHandler(callback = dashboard, pattern = '^(login_success)$')],
 
-                FIRST_NAME: [MessageHandler(Filters.text, lastname),
-                            CallbackQueryHandler(callback = start, pattern = '^(back)$')],
+                FIRST_NAME: [MessageHandler(Filters.text, showtoken),
+                            CallbackQueryHandler(callback = register, pattern = '^(register_back)$')],
 
-                LAST_NAME: [MessageHandler(Filters.text, showtoken),
-                            CallbackQueryHandler(callback = register, pattern = '^(back)$')],
+                # LAST_NAME: [MessageHandler(Filters.text, showtoken),
+                #             CallbackQueryHandler(callback = register, pattern = '^(back)$')],
 
                 NEWLOGIN: [CallbackQueryHandler(callback = dashboard, pattern = '^(dashboard)$'),
                             CallbackQueryHandler(callback = showtoken, pattern = '^(back)$')], 
@@ -933,10 +963,10 @@ def main():
 
     dispatcher.add_handler(CallbackQueryHandler(callback = admin_panel, pattern = '^(return_admin_panel)$'))
 
-    published_events_list, published_eventIDs = getPublishedEvents()
+    published_events_list = DB().generate_all_approved_events()
     # create unique command for each registration of events:
-    for i in range(len(published_eventIDs)):
-        registercommandtext = 'registerForEvent' + str(published_eventIDs[i])
+    for i in range(len(published_events_list)):
+        registercommandtext = 'registerForEvent' + str(published_events_list[i][0])
         dispatcher.add_handler(CommandHandler(command = registercommandtext, callback = confirm_event_registration))
 
     dispatcher.add_handler(CallbackQueryHandler(callback = calendar_handler, pattern = '^(get_calendar)$'))

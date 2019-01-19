@@ -1,8 +1,11 @@
 from booking import Booking
+from dbhelper import DB
+from user import User
 
 class Event:
-    def __init__(self, organizerID, name, description, visibility, booking, attendee):
+    def __init__(self, id, organizerID, name, description, visibility, booking, attendee):
         # fetch data from server
+        self.id = id
         self.organizerID = organizerID
         self.name = name
         self.description = description
@@ -12,7 +15,8 @@ class Event:
 
     @classmethod
     def createEvent(cls, organizerID, name, description):
-        return cls(organizerID, name, description, 0, None, [])
+        id = DB().create_event(User.currentUser.token, name, "", "", description)
+        return cls(id, organizerID, name, description, 0, None, [])
     
     @staticmethod
     def setName(id, name):
@@ -37,4 +41,9 @@ class Event:
     @staticmethod
     def isVisible(id):
         return
+
+    @staticmethod
+    def getVisibleEvents():
+        events = []
+        return events
     
