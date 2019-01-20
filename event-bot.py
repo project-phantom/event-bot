@@ -476,7 +476,6 @@ def start_edit_event(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
     user = query.message.from_user
-    userid = str(user.id)
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
@@ -485,9 +484,9 @@ def start_edit_event(bot, update):
     eventID = str(userinput)
  
     # stores current event ID and carry it for future edit references 
-    INFO_STORE[userid]['Current_Event_ID'] = eventID
+    INFO_STORE[user.id]['Current_Event_ID'] = eventID
 
-    list_selected_dates = INFO_STORE[userid]['Selected_Dates']
+    list_selected_dates = INFO_STORE[user.id]['Selected_Dates']
 
     # manage events from database here:
     EVENTMANAGEMENTLIST = "LIST OF EVENTS MANAGED HERE"
