@@ -51,6 +51,7 @@ class DB:
 			self.conn.commit()
 			return args[1]
 
+
 	def user_login(self, token):
 		## check user token is valid of not
 		scripts = "select token from users where token = (?)"
@@ -73,13 +74,12 @@ class DB:
 		## 10 for pending; 1 for approve; 0 for reject;
 		event_id = random.randint(1000, 9999)
 		venue_id = random.randint(1000, 9999)
-
 		scripts = "insert into events (event_id, organizer_id, event_name, venue_id, venue_name, date_time,  description, visible_status,total_attendee ) values (?,?, ?,?,?,?,?,1,0)"
 		args = (event_id,  organizer_id, event_name, venue_id,  venue_name, datetime.now().strftime('%Y %b-%d %H:%m:%S'), description)
 		self.conn.execute(scripts, args)
 		self.conn.commit()
-		user_id = self.get_id(organizer_id)
-		print(user_id)
+
+
 
 		## return event_id, event_name
 		return (args[0], args[2])
