@@ -446,8 +446,8 @@ def manage_events(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
-    user_list_events = DB().generate_events_of_user(INFO_STORE['user_token'])
-    # user_list_events = ['1234', '2345'] # INPUT LIST OF USER CREATED EVENTS 
+    # user_list_events = DB().generate_events_of_user(INFO_STORE['user_token']) 
+    user_list_events = ['1234', '2345'] # INPUT LIST OF USER CREATED EVENTS 
     
     button_list = []
     if user_list_events:
@@ -480,26 +480,28 @@ def start_edit_event(bot, update):
     userinput = html.escape(query.data)
     logger.info(userinput)
     print(userinput)
-
-    eventID = str(userinput)
+    print(INFO_STORE)
+    eventID = '1234'
  
     # stores current event ID and carry it for future edit references 
-    INFO_STORE[user.id]['Current_Event_ID'] = eventID
+    
+    # list_selected_dates = INFO_STORE[query.message.from_user.id]['Selected_Dates']
+    # print(list_selected_dates)
 
-    list_selected_dates = INFO_STORE[user.id]['Selected_Dates']
 
     # manage events from database here:
     EVENTMANAGEMENTLIST = "LIST OF EVENTS MANAGED HERE"
     # print(INFO_STORE['user_token'])
     print(INFO_STORE['user_token'])
-    list_events = DB().generate_events_of_user(INFO_STORE['user_token'])
+    # list_events = DB().generate_events_of_user(INFO_STORE['user_token'])
+    list_events = ['1234']
 
     replytext = "<b>Here are the list of events you have started:</b>"
     replytext += "\n\n" + EVENTMANAGEMENTLIST
     for i in range(len(list_events)):
-        replytext += "\n\n<b>EVENT ID: " + str(list_events[i][0]) + "</b>"
-        replytext += "\n\n" + str(list_events[i][1]) 
-        replytext += "\n\n" +"status:" + str(list_events[i][2])
+        replytext += "\n\n<b>EVENT ID: " + str(list_events[i]) + "</b>"
+        replytext += "\n\n" + str(list_events[i]) 
+        replytext += "\n\n" +"status:" + str(list_events[i])
 
     """ 
     CPF'S CODE: 
@@ -523,6 +525,7 @@ def start_edit_event(bot, update):
     END
     """
     button_list = []
+    list_selected_dates = []
     # add dates row by row 
     for date in list_selected_dates:
         datesrow = []
@@ -558,7 +561,8 @@ def rename_event(bot, update):
     logger.info(userinput)
 
     # if go back, will callback currently selected event ID
-    eventID = INFO_STORE[userid]['Current_Event_ID'] 
+    #eventID = INFO_STORE[userid]['Current_Event_ID'] 
+    eventID = '1234'
     button_list = [InlineKeyboardButton(text='Back', callback_data = eventID)]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
         
@@ -586,7 +590,8 @@ def process_rename_event(bot, update):
 
     replytext = "<b>Your new Event Name is saved.</b>"
 
-    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    #eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    eventID = '1234'
     button_list = [InlineKeyboardButton(text='Return to Event Page', callback_data = eventID)]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
 
