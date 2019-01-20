@@ -443,14 +443,15 @@ def manage_events(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
-    
-    user_list_events = ['1234', '2345'] # INPUT LIST OF USER CREATED EVENTS 
+    user_list_events = DB().generate_events_of_user(INFO_STORE['user_token'])
+    # user_list_events = ['1234', '2345'] # INPUT LIST OF USER CREATED EVENTS 
     
     button_list = []
-    for i in range(len(user_list_events)):
-        buttontext = 'Event ' + user_list_events[i]
-        callbackdata = user_list_events[i]
-        button_list.append(InlineKeyboardButton(text=buttontext, callback_data = callbackdata))
+    if user_list_events:
+        for i in range(len(user_list_events)):
+            buttontext = 'Event ' + user_list_events[i]
+            callbackdata = user_list_events[i]
+            button_list.append(InlineKeyboardButton(text=buttontext, callback_data = callbackdata))
     
     button_list.append(InlineKeyboardButton(text='Create New Event', callback_data = 'create_event'))
     button_list.append(InlineKeyboardButton(text='Back', callback_data = 'back'))
@@ -476,6 +477,7 @@ def start_edit_event(bot, update):
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
+    print(userinput)
 
     eventID = str(userinput)
  
