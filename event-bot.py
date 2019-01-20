@@ -233,6 +233,8 @@ def showtoken(bot, update):
     replytext += "\n\nYour unique User Token: "
     USERTOKEN = User.register(INFO_STORE[user.id]["first_name"])
     INFO_STORE[user.id]['user_token'] = USERTOKEN
+
+    INFO_STORE['user_token'] = USERTOKEN   ## only record usertoken if success login match
     if USERTOKEN:
         replytext += USERTOKEN
         button_list = [InlineKeyboardButton(text='Login Now', callback_data = 'dashboard'),
