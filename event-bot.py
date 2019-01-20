@@ -76,6 +76,7 @@ def start(bot, update):
         # if new, set up info_store
         INFO_STORE[user.id] = {}
         INFO_STORE[user.id]["BotMessageID"] = []
+        INFO_STORE[user.id]['Selected_Dates'] = []
 
         msgsent = bot.send_message(text = replytext,
                                 chat_id = chatid,
@@ -478,10 +479,11 @@ def start_edit_event(bot, update):
     print(userinput)
 
     eventID = str(userinput)
-    print("this is the event id:" + eventID)
-
+    print(INFO_STORE)   
+    
     # stores current event ID and carry it for future edit references 
-    INFO_STORE[user.id]['Current_Event_ID'] = eventID
+    INFO_STORE[user.id]['Current_Event_ID'] = '1234'
+    
 
     list_selected_dates = INFO_STORE[user.id]['Selected_Dates']
 
