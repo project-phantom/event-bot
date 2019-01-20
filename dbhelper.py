@@ -97,11 +97,11 @@ class DB:
 
 	def generate_events_of_user(self, token):
 		## manage created events by this user_id
-		stmt = 'select a.event_id, a.event_name, a.visible_status from events a join users c on a.organizer_id = c.user_id where c.token = (?)'
+		stmt = 'select a.event_id from events a join users c on a.organizer_id = c.user_id where c.token = (?)'
 		args = (token,)
 		cursor = self.conn.execute(stmt, args)
 		self.conn.commit()
-		return cursor.fetchall()
+		return [str(x) for x in cursor.fetchall()]
 
 	def admin_manage_events(self, user_id, event_id, action):
 		args = None
