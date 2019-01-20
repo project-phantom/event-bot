@@ -87,7 +87,8 @@ class DB:
 
 	def register_for_event(self, userinput, user_token):
 		event_id = userinput[-4:]
-		action = userinput[:8]
+		action = userinput[1:9]
+		print(event_id, action)
 		if action == 'register':
 			stmt = "insert into user_booking (event_id, user_id) values(?), (select user_id from users where token = (?))) "
 			args = (event_id, user_token)
