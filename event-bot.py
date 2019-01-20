@@ -477,9 +477,11 @@ def start_edit_event(bot, update):
     logger.info(userinput)
 
     eventID = str(userinput)
-
+    print(INFO_STORE)   
+    
     # stores current event ID and carry it for future edit references 
     INFO_STORE[user.id]['Current_Event_ID'] = '1234'
+    
 
     list_selected_dates = INFO_STORE[user.id]['Selected_Dates']
 
