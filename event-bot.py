@@ -868,6 +868,7 @@ def admin_panel(bot, update):
         ADMIN_MENU_MESSAGE += "\n\n" + str(list_events[i][1]) 
         ADMIN_MENU_MESSAGE += "\n\n" +"/approveEvent" + str(list_events[i][0]) + " | " +  "/rejectEvent" + str(list_events[i][0])
 
+
     # ADMIN_MENU_MESSAGE += "\n\n" + einfo + "<b>List of Venue Bookings to be Approved:</b>"
     # for i in range(len(list_pending_venues)):
     #     ADMIN_MENU_MESSAGE += "\n\n<b>VENUE ID: " + str(list_venueIDs[i]) + "</b>"
@@ -891,6 +892,8 @@ def admin_process_event(bot, update):
     chatid = update.message.chat.id
     userinput = update.message.text.strip()[1:]
     logger.info(userinput)
+    print(INFO_STORE['user_token'], userinput)
+    DB().admin_manage_events(INFO_STORE['user_token'], userinput)
 
     button_list = [InlineKeyboardButton(text='OK', callback_data = 'return_admin_panel')]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)

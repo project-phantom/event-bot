@@ -101,22 +101,29 @@ class DB:
 		args = (token,)
 		cursor = self.conn.execute(stmt, args)
 		self.conn.commit()
-		results = [str(x) for x in cursor.fetchall()]
+		results = [str(max(x)) for x in cursor.fetchall()]
 		if len(results):
-			return [el.split(',')[0] for el in results]
+			return results
 		return 
 
-	def admin_manage_events(self, user_id, event_id, action):
-		args = None
-		if action == 'approve':
-			visible_status = '1'
-		elif action == 'reject':
-			visible_status = '0'
+	def admin_manage_events(self, user_token, userinput):
+		stmt1 = 'select name from users where token= (?)'
+		user_name = self.execute_scripts(stmt1, user_token)
+		print(user_name)
+		if user_name == 'root':
+			event_id = userinput[-4:]
+			args = None
+			if 'approve' in userinput:
+				visible_status = '1'
+			elif 'reject' in userinput:
+				visible_status = '0'
 
-		stmt = 'update events set visible_status = (?)'
-		args = (visible_status,)
-		self.conn.execute(stmt, args)
-		self.conn.commit()
+			stmt = 'update events set visible_status = (?) where event_id = (?)'
+			args = (visible_status,event_id)
+			self.conn.execute(stmt, args)
+			self.conn.commit()
+		else:
+			print("Can't change admin")
 
 	#def mark_attendance(self, qr_image, user_id):
 		#return str(decode(qr_image)[0].data)[2:-1]
