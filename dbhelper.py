@@ -101,7 +101,10 @@ class DB:
 		args = (token,)
 		cursor = self.conn.execute(stmt, args)
 		self.conn.commit()
-		return [str(x) for x in cursor.fetchall()]
+		results = [str(x) for x in cursor.fetchall()]
+		if len(results):
+			return [el.split(',')[0] for el in results]
+		return 
 
 	def admin_manage_events(self, user_id, event_id, action):
 		args = None
