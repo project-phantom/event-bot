@@ -61,14 +61,25 @@ class DB:
 		print("Wrong token!")
 		return False
 
+	def get_id(self, token):
+		scripts = "select user_id from users where token = (?)"
+		user_id = self.execute_scripts(scripts, token)
+		if user_id:
+			return user_id 
+
+		return 
+
 	def create_event(self, organizer_id, event_name, venue_name,date_time, description):
 		## 10 for pending; 1 for approve; 0 for reject;
 		event_id = random.randint(1000, 9999)
 		venue_id = random.randint(1000, 9999)
+
 		scripts = "insert into events (event_id, organizer_id, event_name, venue_id, venue_name, date_time,  description, visible_status,total_attendee ) values (?,?, ?,?,?,?,?,1,0)"
 		args = (event_id,  organizer_id, event_name, venue_id,  venue_name, datetime.now().strftime('%Y %b-%d %H:%m:%S'), description)
 		self.conn.execute(scripts, args)
 		self.conn.commit()
+		user_id = self.get_id(organizer_id)
+		print(user_id)
 
 		## return event_id, event_name
 		return (args[0], args[2])
@@ -97,7 +108,7 @@ class DB:
 
 	def generate_events_of_user(self, token):
 		## manage created events by this user_id
-		stmt = 'select a.event_id from events a join users c on a.organizer_id = c.user_id where c.token = (?)'
+		stmt = 'select a.event_id from events a join users c on a.organizer_id = c.token where c.token = (?)'
 		args = (token,)
 		cursor = self.conn.execute(stmt, args)
 		self.conn.commit()
