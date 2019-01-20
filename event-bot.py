@@ -475,6 +475,7 @@ def start_edit_event(bot, update):
     logger.info(userinput)
 
     eventID = str(userinput)
+    print("this is the event id:" + eventID)
 
     # stores current event ID and carry it for future edit references 
     INFO_STORE[user.id]['Current_Event_ID'] = eventID
