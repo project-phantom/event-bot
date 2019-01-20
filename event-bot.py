@@ -404,6 +404,7 @@ def confirm_event_registration(bot, update):
     userinput = update.message.text.strip()[1:]
     logger.info(userinput)
     ## registerForEvent and user_token
+    print(userinput, INFO_STORE['user_token'])
     DB().register_for_event(userinput, INFO_STORE['user_token'])
 
     replytext = "WOOTS! You have successfully registered for this event! Press /start if you wish to return to the main menu :)"
