@@ -472,18 +472,17 @@ def start_edit_event(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
     user = query.message.from_user
+    userid = str(user.id)
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
 
     eventID = str(userinput)
-    print(INFO_STORE)   
-    
+ 
     # stores current event ID and carry it for future edit references 
-    INFO_STORE[user.id]['Current_Event_ID'] = '1234'
-    
+    INFO_STORE[userid]['Current_Event_ID'] = eventID
 
-    list_selected_dates = INFO_STORE[user.id]['Selected_Dates']
+    list_selected_dates = INFO_STORE[userid]['Selected_Dates']
 
     # manage events from database here:
     EVENTMANAGEMENTLIST = "LIST OF EVENTS MANAGED HERE"
@@ -549,12 +548,13 @@ def rename_event(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
     user = query.message.from_user
+    userid = str(user.id)
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
 
     # if go back, will callback currently selected event ID
-    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    eventID = INFO_STORE[userid]['Current_Event_ID'] 
     button_list = [InlineKeyboardButton(text='Back', callback_data = eventID)]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
         
@@ -604,12 +604,13 @@ def edit_event_desc(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
     user = query.message.from_user
+    userid = str(user.id)
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
 
     # if go back, will callback currently selected event ID
-    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    eventID = INFO_STORE[userid]['Current_Event_ID'] 
     button_list = [InlineKeyboardButton(text='Back', callback_data = eventID)]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
         
@@ -658,6 +659,7 @@ def book_venue(bot, update):
     query = update.callback_query
     chatid = query.message.chat.id
     user = query.message.from_user
+    userid = str(user.id)
     messageid = query.message.message_id
     userinput = html.escape(query.data)
     logger.info(userinput)
@@ -668,7 +670,7 @@ def book_venue(bot, update):
         button_list.append(InlineKeyboardButton(text=location, callback_data =location))
     
     # if go back, will callback currently selected event ID
-    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    eventID = INFO_STORE[userid]['Current_Event_ID'] 
     button_list.append(InlineKeyboardButton(text='Back', callback_data = eventID))
     menu = build_menu(button_list, n_cols = 2, header_buttons = None, footer_buttons = None)
         
@@ -703,10 +705,11 @@ def inline_handler(bot,update):
     selected,date = telegramcalendar.process_calendar_selection(bot, update)
     replytext = "You selected %s" % (date.strftime("%d/%m/%Y"))
     query = update.callback_query
+    userid = str(user.id)
     chatid = query.message.chat.id
     user = query.message.from_user
 
-    eventID = INFO_STORE[user.id]['Current_Event_ID'] 
+    eventID = INFO_STORE[userid]['Current_Event_ID'] 
     button_list = [InlineKeyboardButton(text='Return to Event', callback_data = eventID)]
     menu = build_menu(button_list, n_cols = 1, header_buttons = None, footer_buttons = None)
 
