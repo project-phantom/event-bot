@@ -405,6 +405,7 @@ def confirm_event_registration(bot, update):
     userinput = update.message.text.strip()[1:]
     logger.info(userinput)
     ## registerForEvent and user_token
+    print(INFO_STORE)
     print(userinput, INFO_STORE['user_token'])
     DB().register_for_event(userinput, INFO_STORE['user_token'])
 
